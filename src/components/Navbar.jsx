@@ -1,0 +1,43 @@
+import React, { useState, useEffect } from 'react';
+import { Gavel, Search, Menu } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import './Navbar.css';
+
+const Navbar = () => {
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  return (
+    <nav className={`navbar-wrapper ${scrolled ? 'scrolled' : ''}`}>
+      <div className="container navbar-content">
+        <Link to="/" className="navbar-logo">
+          <Gavel className="logo-icon" size={28} strokeWidth={2.5} />
+          <span>BidMart</span>
+        </Link>
+        
+        <div className="navbar-search d-none-mobile">
+          <Search className="search-icon" />
+          <input 
+            type="text" 
+            className="search-input" 
+            placeholder="Search for luxury watches, cars, art..." 
+          />
+        </div>
+
+        <div className="navbar-actions">
+          <Link to="/login" className="btn-ghost">Log In</Link>
+          <Link to="/register" className="btn-primary">Sign Up</Link>
+        </div>
+      </div>
+    </nav>
+  );
+};
+
+export default Navbar;
