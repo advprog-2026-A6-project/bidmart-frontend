@@ -1,4 +1,3 @@
-import React from 'react';
 import { Clock, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import './TrendingAuctions.css';
@@ -50,7 +49,7 @@ const TrendingAuctions = () => {
 
         <div className="auction-grid">
           {mockAuctions.map((auction) => (
-            <div key={auction.id} className="auction-card">
+            <Link key={auction.id} to={`/auctions/${auction.id}`} className="auction-card">
               <div 
                 className="card-image" 
                 style={{ backgroundImage: `url(${auction.image})` }}
@@ -74,7 +73,7 @@ const TrendingAuctions = () => {
                   </div>
                 </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </div>
