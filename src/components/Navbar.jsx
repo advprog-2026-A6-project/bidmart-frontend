@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Gavel, Search, Menu } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Gavel, Search } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
 import './Navbar.css';
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
+  const location = useLocation();
+  const isLandingPage = location.pathname === '/';
 
   useEffect(() => {
     const handleScroll = () => {
@@ -32,8 +34,17 @@ const Navbar = () => {
         </div>
 
         <div className="navbar-actions">
-          <Link to="/dashboard" className="btn-ghost">Dashboard</Link>
-          <Link to="/wallet" className="btn-primary">My Wallet</Link>
+          {isLandingPage ? (
+            <>
+              <Link to="/dashboard" className="btn-ghost">Login</Link>
+              <Link to="/dashboard" className="btn-primary">Register</Link>
+            </>
+          ) : (
+            <>
+              <Link to="/dashboard" className="btn-ghost">Dashboard</Link>
+              <Link to="/wallet" className="btn-primary">My Wallet</Link>
+            </>
+          )}
         </div>
       </div>
     </nav>

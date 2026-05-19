@@ -11,7 +11,7 @@ const Dashboard = () => {
       <Navbar />
       <div className="dashboard-container container">
         <div className="dashboard-header">
-          <h1>Welcome back, Jovian!</h1>
+          <h1>Welcome back, User!</h1>
           <p>Here's a quick overview of your auction activities today.</p>
         </div>
 

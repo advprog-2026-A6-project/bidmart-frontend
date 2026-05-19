@@ -56,6 +56,28 @@
   color: var(--text-dark);
 }
 
+.bank-card {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.3);
+}
+
+.bank-card-badge {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: rgba(56, 189, 248, 0.2);
+  color: #38bdf8;
+  padding: 4px 12px;
+  border-radius: 50px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+}
+
 .card-icon-wrapper {
   margin-bottom: 16px;
   opacity: 0.8;
@@ -67,6 +89,10 @@
 
 .secondary-card .card-icon-wrapper {
   color: var(--text-light);
+}
+
+.bank-card .card-icon-wrapper {
+  color: #38bdf8;
 }
 
 .balance-card h3 {
@@ -86,6 +112,14 @@
 .balance-card p {
   font-size: 0.85rem;
   opacity: 0.7;
+}
+
+.bank-account-no {
+  font-family: monospace;
+  font-size: 0.95rem !important;
+  opacity: 0.9 !important;
+  color: #38bdf8 !important;
+  margin-top: 4px;
 }
 
 .action-buttons {
@@ -244,4 +278,119 @@
   display: flex;
   justify-content: flex-end;
   gap: 12px;
+}
+
+.badge.auction_settle { background: #dcfce7; color: #15803d; }
+
+.simulation-history-grid {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 992px) {
+  .simulation-history-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.auction-simulator-card {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  border: 1px solid var(--border-light);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+}
+
+.auction-simulator-card h3 {
+  font-size: 1.15rem;
+  color: var(--tertiary-blue);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sim-desc {
+  font-size: 0.8rem;
+  color: var(--text-light);
+  margin-bottom: 20px;
+  line-height: 1.4;
+}
+
+.sim-form-group {
+  margin-bottom: 16px;
+}
+
+.sim-form-group label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-light);
+  margin-bottom: 6px;
+}
+
+.sim-input {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 0.95rem;
+  border: 1.5px solid var(--border-light);
+  border-radius: 8px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.sim-input:focus {
+  border-color: var(--tertiary-blue);
+}
+
+.sim-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.btn-sim {
+  width: 100%;
+  padding: 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border-radius: 8px;
+  text-align: center;
+  transition: all 0.2s;
+}
+
+.btn-hold {
+  background-color: #fef08a;
+  color: #a16207;
+  border: 1px solid rgba(161, 98, 7, 0.1);
+}
+
+.btn-hold:hover {
+  background-color: #fde047;
+  transform: translateY(-1px);
+}
+
+.btn-release {
+  background-color: #e0f2fe;
+  color: #0369a1;
+  border: 1px solid rgba(3, 105, 161, 0.1);
+}
+
+.btn-release:hover {
+  background-color: #bae6fd;
+  transform: translateY(-1px);
+}
+
+.btn-settle {
+  background-color: #dcfce7;
+  color: #15803d;
+  border: 1px solid rgba(21, 128, 61, 0.1);
+}
+
+.btn-settle:hover {
+  background-color: #bbf7d0;
+  transform: translateY(-1px);
 }
