@@ -1,0 +1,247 @@
+.page-wrapper {
+  padding-top: 100px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.wallet-container {
+  flex: 1;
+  padding-bottom: 60px;
+}
+
+.wallet-header {
+  margin-bottom: 40px;
+}
+
+.wallet-header h1 {
+  font-size: 2.5rem;
+  color: var(--tertiary-blue);
+  margin-bottom: 8px;
+}
+
+.wallet-header p {
+  color: var(--text-light);
+  font-size: 1.1rem;
+}
+
+.balance-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 24px;
+  margin-bottom: 30px;
+}
+
+.balance-card {
+  padding: 30px;
+  border-radius: 16px;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.3s ease;
+}
+
+.balance-card:hover {
+  transform: translateY(-5px);
+}
+
+.primary-card {
+  background: linear-gradient(135deg, var(--tertiary-blue) 0%, var(--tertiary-blue-light) 100%);
+  color: white;
+  box-shadow: 0 10px 30px rgba(29, 53, 87, 0.2);
+}
+
+.secondary-card {
+  background: white;
+  border: 1px solid var(--border-light);
+  color: var(--text-dark);
+}
+
+.card-icon-wrapper {
+  margin-bottom: 16px;
+  opacity: 0.8;
+}
+
+.primary-card .card-icon-wrapper {
+  color: #90e0ef;
+}
+
+.secondary-card .card-icon-wrapper {
+  color: var(--text-light);
+}
+
+.balance-card h3 {
+  font-size: 1rem;
+  font-weight: 500;
+  opacity: 0.9;
+  margin-bottom: 8px;
+}
+
+.balance-card .amount {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+  letter-spacing: -1px;
+}
+
+.balance-card p {
+  font-size: 0.85rem;
+  opacity: 0.7;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 40px;
+}
+
+.btn-action {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border-radius: 50px;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.top-up-btn {
+  background-color: var(--secondary-red);
+  color: white;
+  box-shadow: 0 4px 14px rgba(230, 57, 70, 0.3);
+}
+
+.top-up-btn:hover {
+  background-color: var(--secondary-red-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(230, 57, 70, 0.4);
+}
+
+.withdraw-btn {
+  background-color: white;
+  color: var(--tertiary-blue);
+  border: 1px solid var(--border-light);
+}
+
+.withdraw-btn:hover {
+  background-color: #f1f5f9;
+}
+
+.transaction-history {
+  background: white;
+  border-radius: 16px;
+  padding: 30px;
+  border: 1px solid var(--border-light);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+}
+
+.transaction-history h2 {
+  margin-bottom: 24px;
+  color: var(--tertiary-blue);
+}
+
+.table-responsive {
+  overflow-x: auto;
+}
+
+.tx-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tx-table th, .tx-table td {
+  padding: 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.tx-table th {
+  color: var(--text-light);
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.tx-table tbody tr:hover {
+  background-color: rgba(0,0,0,0.01);
+}
+
+.font-mono {
+  font-family: monospace;
+  color: var(--text-light);
+}
+
+.badge {
+  padding: 4px 10px;
+  border-radius: 50px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.badge.top_up { background: #e0f2fe; color: #0284c7; }
+.badge.bid_hold { background: #fef08a; color: #a16207; }
+.badge.bid_release { background: #dcfce7; color: #15803d; }
+.badge.withdraw { background: #fee2e2; color: #b91c1c; }
+
+.text-red { color: var(--secondary-red); }
+.text-green { color: #16a34a; }
+.font-bold { font-weight: 600; }
+
+.status-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.modal-content {
+  background: white;
+  padding: 40px;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 450px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+}
+
+.modal-content h3 {
+  font-size: 1.5rem;
+  color: var(--tertiary-blue);
+  margin-bottom: 8px;
+}
+
+.modal-desc {
+  color: var(--text-light);
+  margin-bottom: 24px;
+}
+
+.amount-input {
+  width: 100%;
+  padding: 16px;
+  font-size: 1.2rem;
+  border: 2px solid var(--border-light);
+  border-radius: 12px;
+  margin-bottom: 24px;
+  outline: none;
+  transition: border-color 0.3s;
+}
+
+.amount-input:focus {
+  border-color: var(--tertiary-blue);
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
