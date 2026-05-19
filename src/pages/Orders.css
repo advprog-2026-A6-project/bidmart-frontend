@@ -1,0 +1,172 @@
+﻿.page-wrapper {
+  padding-top: 100px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.page-header {
+  margin-bottom: 2rem;
+}
+
+.page-header h1 {
+  font-size: 2.5rem;
+  color: var(--tertiary-blue);
+  margin-bottom: 8px;
+}
+
+.page-header p {
+  color: var(--text-light);
+  font-size: 1.1rem;
+}
+
+.order-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  padding-bottom: 3rem;
+}
+
+.order-card {
+  background: var(--primary-white);
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--border-light);
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.order-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
+}
+
+.order-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.order-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.status-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.25rem 0.75rem;
+  border-radius: 50px;
+  text-transform: uppercase;
+}
+
+.status-shipped { background: #e0e7ff; color: #4338ca; }
+.status-completed { background: #dcfce7; color: #15803d; }
+.status-automatic_created { background: #fef9c3; color: #a16207; }
+.status-disputed { background: #fee2e2; color: #b91c1c; }
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+  font-size: 0.9rem;
+}
+
+.detail-row .label { color: var(--text-light); }
+.detail-row .price { font-weight: 700; color: var(--tertiary-blue); }
+.detail-row .tracking { font-family: monospace; font-weight: 600; }
+
+.order-actions {
+  margin-top: auto;
+  padding-top: 1.5rem;
+}
+
+.full-width {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 50px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-primary { background: var(--secondary-red); color: white; border: none; }
+.btn-primary:hover { background: var(--secondary-red-hover); }
+.btn-outline { background: white; border: 1px solid var(--border-light); color: var(--text-dark); }
+.btn-outline:hover { background: var(--primary-bg); }
+
+.dispute-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.dispute-input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;
+  resize: vertical;
+  min-height: 80px;
+}
+
+.dispute-input:focus {
+  outline: none;
+  border-color: var(--secondary-red);
+}
+
+.dispute-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.dispute-buttons .btn-primary,
+.dispute-buttons .btn-outline {
+  flex: 1;
+  padding: 0.5rem 1rem;
+  border-radius: 50px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.error-state, .empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  background: var(--primary-white);
+  border-radius: 16px;
+  border: 1px dashed var(--border-light);
+}
+
+.error-state h3, .empty-state h3 {
+  color: var(--tertiary-blue);
+  margin-bottom: 0.5rem;
+}
+
+.error-state p, .empty-state p {
+  color: var(--text-light);
+  margin-bottom: 1rem;
+}
+
+.loading-state {
+  text-align: center;
+  padding: 3rem;
+  color: var(--text-light);
+  font-size: 1.1rem;
+}
+
+@media (max-width: 768px) {
+  .order-grid { grid-template-columns: 1fr; }
+}

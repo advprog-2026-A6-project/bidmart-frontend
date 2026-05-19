@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Gavel, Search } from 'lucide-react';
+﻿import React, { useState, useEffect } from 'react';
+import { Gavel, Search, Bell, Package } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import './Navbar.css';
 
@@ -33,7 +33,7 @@ const Navbar = () => {
           />
         </div>
 
-        <div className="navbar-actions">
+        <div className="navbar-actions" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           {isLandingPage ? (
             <>
               <Link to="/dashboard" className="btn-ghost">Login</Link>
@@ -42,6 +42,12 @@ const Navbar = () => {
           ) : (
             <>
               <Link to="/dashboard" className="btn-ghost">Dashboard</Link>
+              <Link to="/orders" className="btn-ghost" style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                <Package size={18} /> Orders
+              </Link>
+              <Link to="/notifications" className="btn-ghost" style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                <Bell size={18} /> Notifications
+              </Link>
               <Link to="/wallet" className="btn-primary">My Wallet</Link>
             </>
           )}
