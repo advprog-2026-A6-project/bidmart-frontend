@@ -74,6 +74,8 @@
   display: flex;
   align-items: center;
   gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .btn-ghost {
@@ -101,4 +103,32 @@
   background-color: var(--secondary-red-hover);
   transform: translateY(-1px);
   box-shadow: 0 6px 20px rgba(230, 57, 70, 0.4);
+}
+
+.navbar-inline-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.navbar-logout {
+  background: transparent;
+}
+
+@media (max-width: 1100px) {
+  .navbar-content {
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .navbar-search {
+    order: 3;
+    flex: 1 1 100%;
+    max-width: none;
+    margin: 0;
+  }
+
+  .navbar-actions {
+    flex: 1 1 100%;
+  }
 }
