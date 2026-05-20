@@ -21,6 +21,10 @@ export default defineConfig(({ mode }) => {
           target: env.VITE_CATALOG_SERVICE_URL || 'http://localhost:8083',
           changeOrigin: true,
         },
+        '/api/wallet': {
+          target: 'http://localhost:8080', // Arahkan ke API Gateway
+          changeOrigin: true,
+        },
       },
     },
   };
