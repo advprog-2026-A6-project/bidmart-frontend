@@ -10,27 +10,27 @@ export default defineConfig(({ mode }) => {
     server: {
       proxy: {
         '/api/auctions': {
-          target: env.VITE_AUCTION_SERVICE_URL || 'http://localhost:8082',
+          target: env.VITE_AUCTION_SERVICE_URL || 'http://localhost:8080',
           changeOrigin: true,
         },
         '/api/auth': {
-          target: env.VITE_AUTH_SERVICE_URL || 'http://localhost:8081',
+          target: env.VITE_AUTH_SERVICE_URL || 'http://localhost:8080',
           changeOrigin: true,
         },
         '/api/profile': {
-          target: env.VITE_AUTH_SERVICE_URL || 'http://localhost:8081',
+          target: env.VITE_AUTH_SERVICE_URL || 'http://localhost:8080',
           changeOrigin: true,
         },
         '/api/admin': {
-          target: env.VITE_AUTH_SERVICE_URL || 'http://localhost:8081',
+          target: env.VITE_AUTH_SERVICE_URL || 'http://localhost:8080',
           changeOrigin: true,
         },
         '/listings': {
-          target: env.VITE_CATALOG_SERVICE_URL || 'http://localhost:8083',
+          target: env.VITE_CATALOG_SERVICE_URL || 'http://localhost:8080',
           changeOrigin: true,
         },
         '/api/categories': {
-          target: env.VITE_CATALOG_SERVICE_URL || 'http://localhost:8083',
+          target: env.VITE_CATALOG_SERVICE_URL || 'http://localhost:8080',
           changeOrigin: true,
         },
         '/api/wallet': {

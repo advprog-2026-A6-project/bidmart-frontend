@@ -58,9 +58,9 @@ const TransactionHistory = () => {
 
   if (isLoading) {
     return (
-        <div className="wallet-container page-layout">
+        <div className="page-wrapper">
           <Navbar />
-          <div className="wallet-content-wrapper" style={{textAlign: 'center', padding: '100px'}}>
+          <div className="wallet-container" style={{textAlign: 'center', padding: '100px'}}>
             <div className="loading-spinner">Memuat riwayat transaksi...</div>
           </div>
           <Footer />
@@ -69,10 +69,10 @@ const TransactionHistory = () => {
   }
 
   return (
-      <div className="wallet-container page-layout">
+      <div className="page-wrapper">
         <Navbar />
-        <div className="wallet-content-wrapper">
-          <div className="wallet-header-section">
+        <div className="wallet-container">
+          <div className="wallet-header">
             <h1 className="wallet-title"><Clock size={28} /> Riwayat Mutasi Dompet</h1>
             <p className="wallet-subtitle">Seluruh mutasi dana masuk, keluar, dan penahanan dana jaminan lelang terekam di sini.</p>
           </div>
@@ -94,9 +94,9 @@ const TransactionHistory = () => {
             </div>
           </div>
 
-          <div className="transactions-preview-section glass-effect" style={{marginTop: '20px'}}>
+          <div className="transaction-history" style={{marginTop: '20px'}}>
             <div className="table-responsive">
-              <table className="transaction-table">
+              <table className="tx-table">
                 <thead>
                 <tr>
                   <th>ID Transaksi</th>

@@ -60,7 +60,7 @@ export const walletApi = {
     },
 
     confirmTopUp: async (userId, amount, paymentReference) => {
-        const res = await fetch(`${WALLET_API_BASE}/topup/simulate-bank-pay?userId=${userId}&amount=${amount}&paymentReference=${paymentReference}`, {
+        const res = await fetch(`${WALLET_API_BASE}/topup/confirm?amount=${amount}`, {
             method: 'POST',
             headers: getHeaders(userId, true),
         });

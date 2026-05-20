@@ -1,16 +1,15 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { Wallet as WalletIcon, ArrowUpRight, ArrowDownLeft, Clock, CheckCircle, XCircle, ArrowRight, Landmark } from 'lucide-react';
 import { walletApi } from '../api/walletApi';
+import useAuth from '../context/useAuth';
 import './Wallet.css';
 
 const Wallet = () => {
-  const navigate = useNavigate();
-
-  const storedUser = localStorage.getItem('user');
-  const currentUserId = storedUser ? JSON.parse(storedUser).id : null;
+  const { session } = useAuth();
+  const currentUserId = session?.userId;
 
   const [availableBalance, setAvailableBalance] = useState(0);
   const [heldBalance, setHeldBalance] = useState(0);
@@ -50,12 +49,9 @@ const Wallet = () => {
   };
 
   useEffect(() => {
-    if (!currentUserId) {
-      alert("Sesi Anda telah berakhir atau Anda belum login. Silakan login kembali.");
-      navigate('/login');
-      return;
+    if (currentUserId) {
+      fetchAllWalletData();
     }
-    fetchAllWalletData();
   }, [currentUserId]);
 
   const handleRequestTopUp = async () => {
@@ -74,7 +70,7 @@ const Wallet = () => {
 
   const handleConfirmPayment = async () => {
     try {
-      await walletApi.confirmTopUp(currentUserId, activeVaDetails.amount, activeVaDetails.paymentReference);
+      await walletApi.confirmTopUp(currentUserId, activeVaDetails.amountToPay, activeVaDetails.paymentReference);
       alert("Top up sukses disimulasikan!");
       setShowTopUpModal(false);
       setTopUpAmount('');
@@ -110,9 +106,9 @@ const Wallet = () => {
 
   if (isLoading) {
     return (
-        <div className="wallet-container page-layout">
+        <div className="page-wrapper">
           <Navbar />
-          <div className="wallet-content-wrapper" style={{textAlign: 'center', padding: '100px'}}>
+          <div className="wallet-container" style={{textAlign: 'center', padding: '100px'}}>
             <div className="loading-spinner">Memuat data dompet...</div>
           </div>
           <Footer />
@@ -121,16 +117,16 @@ const Wallet = () => {
   }
 
   return (
-      <div className="wallet-container page-layout">
+      <div className="page-wrapper">
         <Navbar />
-        <div className="wallet-content-wrapper">
-          <div className="wallet-header-section">
+        <div className="wallet-container">
+          <div className="wallet-header">
             <h1 className="wallet-title"><WalletIcon size={28} /> Dompet Saya</h1>
             <p className="wallet-subtitle">Kelola saldo, penarikan dana, dan lacak riwayat transaksi penawaran lelang Anda.</p>
           </div>
 
-          <div className="wallet-dashboard-grid">
-            <div className="balance-card primary-gradient">
+          <div className="balance-grid">
+            <div className="balance-card primary-card">
               <div className="card-top">
                 <span className="card-label">Saldo Aktif (Available)</span>
                 <WalletIcon size={24} className="opacity-75" />
@@ -141,7 +137,7 @@ const Wallet = () => {
               </div>
             </div>
 
-            <div className="bank-account-card glass-effect">
+            <div className="balance-card bank-card">
               <div className="card-top">
                 <span className="card-label">Rekening Terhubung</span>
                 <Landmark size={24} className="text-primary" />
@@ -151,23 +147,23 @@ const Wallet = () => {
             </div>
           </div>
 
-          <div className="wallet-actions-row">
-            <button className="btn-action topup" onClick={() => { setTopUpStep(1); setShowTopUpModal(true); }}>
+          <div className="action-buttons">
+            <button className="btn-action top-up-btn" onClick={() => { setTopUpStep(1); setShowTopUpModal(true); }}>
               <ArrowDownLeft size={20} /> Top Up Saldo
             </button>
-            <button className="btn-action withdraw" onClick={() => setShowWithdrawModal(true)}>
+            <button className="btn-action withdraw-btn" onClick={() => setShowWithdrawModal(true)}>
               <ArrowUpRight size={20} /> Tarik Dana (Withdraw)
             </button>
           </div>
 
-          <div className="transactions-preview-section glass-effect">
+          <div className="transaction-history">
             <div className="section-header">
               <h3>Aktivitas Transaksi Terakhir</h3>
-              <Link to="/wallet/history" className="see-all-link">Lihat Semua <ArrowRight size={16} /></Link>
+              <Link to="/transactions" className="see-all-link">Lihat Semua <ArrowRight size={16} /></Link>
             </div>
 
             <div className="table-responsive">
-              <table className="transaction-table">
+              <table className="tx-table">
                 <thead>
                 <tr>
                   <th>ID Transaksi</th>
@@ -228,9 +224,9 @@ const Wallet = () => {
                     <>
                       <h3>Simulasi Transfer Bank (Virtual Account)</h3>
                       <div className="va-details-box text-left">
-                        <p><strong>Bank Tujuan:</strong> {activeVaDetails?.bankName}</p>
+                        <p><strong>Bank Tujuan:</strong> {activeVaDetails?.bankName || 'BCA'}</p>
                         <p><strong>Nomor Virtual Account:</strong> <code className="va-code">{activeVaDetails?.virtualAccountNumber}</code></p>
-                        <p><strong>Total Tagihan:</strong> Rp {activeVaDetails?.amount?.toLocaleString('id-ID')}</p>
+                        <p><strong>Total Tagihan:</strong> Rp {activeVaDetails?.amountToPay?.toLocaleString('id-ID')}</p>
                         <p style={{fontSize: '0.85rem', color: 'var(--text-light)', marginTop: '10px'}}>
                           *Gunakan tombol di bawah untuk menyimulasikan respon sukses dari pihak sistem webhook perbankan.
                         </p>
