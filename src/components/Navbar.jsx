@@ -42,6 +42,7 @@ const Navbar = () => {
           ) : (
             <>
               <Link to="/dashboard" className="btn-ghost">Dashboard</Link>
+              <Link to="/catalog" className="btn-ghost">Catalog</Link>
               <Link to="/auctions" className="btn-ghost">Auctions</Link>
               <Link to="/orders" className="btn-ghost" style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                 <Package size={18} /> Orders
@@ -50,6 +51,9 @@ const Navbar = () => {
                 <Bell size={18} /> Notifications
               </Link>
               <Link to="/wallet" className="btn-ghost">Wallet</Link>
+              <Link to="/catalog/new" className="btn-ghost" style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                <Plus size={18} /> Add Listing
+              </Link>
               <Link to="/sell" className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
                 <Plus size={18} /> Add Auction
               </Link>
