@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   ArrowLeft,
   Calendar,
@@ -34,7 +34,7 @@ const ListingDetail = () => {
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
 
-  const loadListing = async () => {
+  const loadListing = useCallback(async () => {
     setLoading(true);
     setError('');
 
@@ -50,11 +50,15 @@ const ListingDetail = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [listingId]);
 
   useEffect(() => {
-    loadListing();
-  }, [listingId]);
+    const timeoutId = window.setTimeout(() => {
+      loadListing();
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [loadListing]);
 
   const handleUpdate = async (event) => {
     event.preventDefault();

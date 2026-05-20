@@ -1,45 +1,82 @@
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
-import { Activity, Trophy, Heart, ArrowRight } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { BadgeCheck, KeySquare, MonitorSmartphone, ShieldCheck, UserRoundCog } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import AppShell from '../components/AppShell';
+import useAuth from '../context/useAuth';
 import './Dashboard.css';
 
 const Dashboard = () => {
+  const { getActiveSessions, hasAnyAuthority, profile, refreshProfile, session } = useAuth();
+  const [sessionCount, setSessionCount] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const bootstrap = async () => {
+      setLoading(true);
+
+      try {
+        if (!profile) {
+          await refreshProfile();
+        }
+
+        const sessions = await getActiveSessions();
+        setSessionCount((sessions || []).length);
+      } catch {
+        setSessionCount(0);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    bootstrap();
+  }, [getActiveSessions, profile, refreshProfile]);
+
+  const permissionCount = session?.authorities?.length || 0;
+  const canManageAdmin = hasAnyAuthority(['rbac:manage', 'user:deactivate']);
+
   return (
-    <div className="page-wrapper">
-      <Navbar />
+    <AppShell>
       <div className="dashboard-container container">
         <div className="dashboard-header">
-          <h1>Welcome back, User!</h1>
-          <p>Here's a quick overview of your auction activities today.</p>
+          <h1>Selamat datang, {profile?.name || session?.email || 'BidMart User'}!</h1>
+          <p>Dashboard ini sekarang jadi pusat kontrol fitur Auth: validasi akun, 2FA, session management, dan RBAC admin.</p>
         </div>
 
         <div className="stats-grid">
           <div className="stat-card glass-effect">
             <div className="stat-icon-wrapper bg-blue-light">
-              <Activity className="stat-icon text-blue" size={28} />
+              <BadgeCheck className="stat-icon text-blue" size={28} />
             </div>
             <div className="stat-info">
-              <h3>2</h3>
-              <p>Active Bids</p>
+              <h3>{profile?.emailVerified ? 'Verified' : 'Pending'}</h3>
+              <p>Email Verification</p>
             </div>
           </div>
           <div className="stat-card glass-effect">
             <div className="stat-icon-wrapper bg-gold-light">
-              <Trophy className="stat-icon text-gold" size={28} />
+              <ShieldCheck className="stat-icon text-gold" size={28} />
             </div>
             <div className="stat-info">
-              <h3>5</h3>
-              <p>Auctions Won</p>
+              <h3>{profile?.twoFactorMethod || 'NONE'}</h3>
+              <p>2FA Method</p>
             </div>
           </div>
           <div className="stat-card glass-effect">
             <div className="stat-icon-wrapper bg-red-light">
-              <Heart className="stat-icon text-red" size={28} />
+              <MonitorSmartphone className="stat-icon text-red" size={28} />
             </div>
             <div className="stat-info">
-              <h3>12</h3>
-              <p>Watchlist Items</p>
+              <h3>{loading ? '...' : sessionCount}</h3>
+              <p>Active Sessions</p>
+            </div>
+          </div>
+          <div className="stat-card glass-effect">
+            <div className="stat-icon-wrapper bg-blue-light">
+              <KeySquare className="stat-icon text-blue" size={28} />
+            </div>
+            <div className="stat-info">
+              <h3>{permissionCount}</h3>
+              <p>Granted Permissions</p>
             </div>
           </div>
         </div>
@@ -47,57 +84,69 @@ const Dashboard = () => {
         <div className="dashboard-content">
           <div className="dashboard-main">
             <div className="section-title">
-              <h2>Your Active Bids</h2>
-              <Link to="/auctions" className="view-all">View All <ArrowRight size={16} /></Link>
+              <h2>Auth Operations</h2>
+              <Link to="/account" className="view-all">Open Account</Link>
             </div>
-            
-            <div className="bid-list">
-              <div className="bid-item glass-effect">
-                <div className="bid-image placeholder-img"></div>
-                <div className="bid-details">
-                  <h4>Rolex Submariner Date</h4>
-                  <p className="bid-amount">Current Highest Bid: <strong>Rp 150,000,000</strong></p>
-                  <p className="status leading">
-                    <span className="dot dot-green"></span> You are the highest bidder!
-                  </p>
+
+            <div className="ops-grid">
+              <div className="ops-card glass-effect">
+                <div className="ops-card-header">
+                  <UserRoundCog size={20} />
+                  <h3>Profile & contact preferences</h3>
                 </div>
-                <div className="bid-time">
-                  <span className="time-left">Ends in 2h 45m</span>
-                  <Link to="/auctions/1" className="btn-ghost small">View Details</Link>
-                </div>
+                <p>Kelola nama, alamat pengiriman, foto profil, serta preferensi kontak email atau phone yang diminta modul lain.</p>
+                <Link to="/account" className="btn-primary small">Kelola profil</Link>
               </div>
 
-              <div className="bid-item glass-effect">
-                <div className="bid-image placeholder-img-2"></div>
-                <div className="bid-details">
-                  <h4>Porsche 911 GT3 RS (1:18)</h4>
-                  <p className="bid-amount">Current Highest Bid: <strong>Rp 4,500,000</strong></p>
-                  <p className="status outbid">
-                    <span className="dot dot-red"></span> You have been outbid.
-                  </p>
+              <div className="ops-card glass-effect">
+                <div className="ops-card-header">
+                  <ShieldCheck size={20} />
+                  <h3>2FA management</h3>
                 </div>
-                <div className="bid-time bid-actions-col">
-                   <span className="time-left">Ends in 5h 10m</span>
-                  <button className="btn-primary small">Place Higher Bid</button>
-                </div>
+                <p>Generate QR TOTP, aktifkan email 2FA, atau matikan faktor kedua dari satu halaman yang sama.</p>
+                <Link to="/account" className="btn-primary small">Atur 2FA</Link>
               </div>
+
+              <div className="ops-card glass-effect">
+                <div className="ops-card-header">
+                  <MonitorSmartphone size={20} />
+                  <h3>Session controls</h3>
+                </div>
+                <p>Lihat daftar sesi aktif, revoke manual per sesi, dan pastikan overflow policy backend sudah berjalan.</p>
+                <Link to="/account" className="btn-primary small">Lihat sesi</Link>
+              </div>
+
+              {canManageAdmin ? (
+                <div className="ops-card glass-effect">
+                  <div className="ops-card-header">
+                    <KeySquare size={20} />
+                    <h3>RBAC runtime admin</h3>
+                  </div>
+                  <p>Buat role custom, assign permission granular, kelola role user, dan deactivate akun dari admin console.</p>
+                  <Link to="/admin/auth" className="btn-primary small">Buka admin auth</Link>
+                </div>
+              ) : null}
             </div>
           </div>
-          
+
           <div className="dashboard-sidebar">
-             <div className="wallet-summary glass-effect">
-                <h3>Wallet Summary</h3>
-                <div className="summary-balance">
-                  <p>Available Balance</p>
-                  <h2>Rp 3,800,000</h2>
-                </div>
-                <Link to="/wallet" className="btn-primary full-width">Go to Wallet</Link>
-             </div>
+            <div className="wallet-summary glass-effect auth-summary-card">
+              <h3>Session Snapshot</h3>
+              <div className="summary-balance auth-summary-values">
+                <p>User ID</p>
+                <h2>{profile?.id ?? '-'}</h2>
+              </div>
+              <div className="auth-summary-meta">
+                <p><strong>Email:</strong> {profile?.email || session?.email || '-'}</p>
+                <p><strong>Contact:</strong> {profile?.preferredContactMethod || '-'}</p>
+                <p><strong>Notifications:</strong> {profile?.emailNotificationsEnabled ? 'Email on' : 'Email off'} / {profile?.pushNotificationsEnabled ? 'Push on' : 'Push off'}</p>
+              </div>
+              <Link to="/account" className="btn-primary full-width">Go to Account</Link>
+            </div>
           </div>
         </div>
       </div>
-      <Footer />
-    </div>
+    </AppShell>
   );
 };
 

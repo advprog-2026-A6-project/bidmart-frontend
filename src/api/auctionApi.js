@@ -1,42 +1,8 @@
+import { apiFetch } from './apiClient';
+
 const AUCTION_API_BASE = import.meta.env.VITE_AUCTION_API_BASE || '/api/auctions';
 
-const defaultHeaders = {
-  'Content-Type': 'application/json',
-};
-
-const parseResponse = async (response) => {
-  const contentType = response.headers.get('content-type') || '';
-  const payload = contentType.includes('application/json')
-    ? await response.json()
-    : await response.text();
-
-  if (!response.ok) {
-    const message =
-      payload?.message ||
-      payload?.error ||
-      payload?.detail ||
-      payload?.reason ||
-      payload?.title ||
-      (typeof payload === 'string' && payload) ||
-      `Request failed with status ${response.status}`;
-
-    throw new Error(message);
-  }
-
-  return payload;
-};
-
-const request = async (path = '', options = {}) => {
-  const response = await fetch(`${AUCTION_API_BASE}${path}`, {
-    ...options,
-    headers: {
-      ...defaultHeaders,
-      ...options.headers,
-    },
-  });
-
-  return parseResponse(response);
-};
+const request = (path = '', options = {}) => apiFetch(`${AUCTION_API_BASE}${path}`, options);
 
 export const auctionApi = {
   listAuctions: () => request(),
@@ -44,6 +10,9 @@ export const auctionApi = {
   createAuction: (payload) =>
     request('', {
       method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify(payload),
     }),
   activateAuction: (auctionId) =>
@@ -59,6 +28,9 @@ export const auctionApi = {
   placeBid: (auctionId, payload) =>
     request(`/${auctionId}/bids`, {
       method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify(payload),
     }),
   getListingBidStatus: (listingId) =>
