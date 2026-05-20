@@ -28,6 +28,16 @@
   margin-bottom: 1rem;
 }
 
+.auction-detail-badge.status-draft {
+  background: rgba(202, 138, 4, 0.1);
+  color: #a16207;
+}
+
+.auction-detail-badge.status-won {
+  background: rgba(21, 128, 61, 0.1);
+  color: #15803d;
+}
+
 .auction-detail-badge-dot {
   width: 7px;
   height: 7px;
@@ -259,6 +269,11 @@
   font-weight: 700;
 }
 
+.bid-input-wrap svg {
+  color: var(--text-light);
+  flex: 0 0 auto;
+}
+
 .bid-input-wrap input {
   width: 100%;
   border: 0;
@@ -285,6 +300,41 @@
   padding: 0.6rem 1.5rem;
 }
 
+.auction-admin-action {
+  margin-top: 1rem;
+}
+
+.auction-place-bid:disabled,
+.auction-secondary-action:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+  transform: none;
+}
+
+.auction-action-message,
+.auction-unavailable-note {
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.auction-action-message.error {
+  background: rgba(230, 57, 70, 0.08);
+  color: var(--secondary-red);
+}
+
+.auction-action-message.success {
+  background: rgba(21, 128, 61, 0.1);
+  color: #15803d;
+}
+
+.auction-unavailable-note {
+  background: rgba(29, 53, 87, 0.06);
+  color: var(--tertiary-blue);
+}
+
 .auction-trust-note {
   display: flex;
   align-items: flex-start;
@@ -305,6 +355,11 @@
 .bid-history-list {
   display: flex;
   flex-direction: column;
+}
+
+.bid-history-empty {
+  color: var(--text-light);
+  padding-top: 0.5rem;
 }
 
 .bid-history-item {
@@ -374,6 +429,39 @@
 
 .bid-status-outbid {
   color: var(--text-light);
+}
+
+.bid-status-winning {
+  color: var(--secondary-red);
+}
+
+.bid-status-accepted {
+  color: #15803d;
+}
+
+.auction-detail-state {
+  min-height: 320px;
+  background: var(--primary-white);
+  border: 1px solid var(--border-light);
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 0.8rem;
+  text-align: center;
+  padding: 2rem;
+  color: var(--text-light);
+}
+
+.auction-detail-state h1 {
+  color: var(--tertiary-blue);
+  font-size: 1.8rem;
+}
+
+.auction-detail-state.error {
+  color: var(--secondary-red);
 }
 
 @media (max-width: 992px) {

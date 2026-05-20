@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import { Filter, Download, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { Filter, CheckCircle, XCircle, Clock } from 'lucide-react';
 import './TransactionHistory.css';
 import './Wallet.css'; 
 

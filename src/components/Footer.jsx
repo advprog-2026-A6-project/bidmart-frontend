@@ -1,4 +1,3 @@
-import React from 'react';
 import { Gavel } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import './Footer.css';
@@ -21,10 +20,10 @@ const Footer = () => {
           <div className="footer-col">
             <h4>Explore</h4>
             <ul className="footer-links">
-              <li><Link to="/explore">All Auctions</Link></li>
-              <li><Link to="/category/watches">Luxury Watches</Link></li>
-              <li><Link to="/category/vehicles">Exotic Vehicles</Link></li>
-              <li><Link to="/category/art">Fine Art</Link></li>
+              <li><Link to="/auctions">All Auctions</Link></li>
+              <li><Link to="/auctions">Luxury Watches</Link></li>
+              <li><Link to="/auctions">Exotic Vehicles</Link></li>
+              <li><Link to="/auctions">Fine Art</Link></li>
             </ul>
           </div>
           
@@ -43,7 +42,7 @@ const Footer = () => {
             <ul className="footer-links">
               <li><Link to="/login">Log In</Link></li>
               <li><Link to="/register">Sign Up</Link></li>
-              <li><Link to="/seller-application">Become a Seller</Link></li>
+              <li><Link to="/sell">Become a Seller</Link></li>
             </ul>
           </div>
         </div>

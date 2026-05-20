@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
@@ -13,9 +13,9 @@ const dummyTransactions = [
 
 const Wallet = () => {
   const [availableBalance, setAvailableBalance] = useState(3800000);
-  const [heldBalance, setHeldBalance] = useState(1200000);
+  const [heldBalance] = useState(1200000);
   const [bankBalance, setBankBalance] = useState(15000000);
-  const [bankAccount, setBankAccount] = useState('BCA - 8820391827');
+  const [bankAccount] = useState('BCA - 8820391827');
 
   const [showTopUp, setShowTopUp] = useState(false);
   const [topUpAmount, setTopUpAmount] = useState('');
