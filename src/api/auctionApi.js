@@ -16,6 +16,7 @@ const parseResponse = async (response) => {
       payload?.error ||
       payload?.detail ||
       payload?.reason ||
+      payload?.title ||
       (typeof payload === 'string' && payload) ||
       `Request failed with status ${response.status}`;
 
@@ -53,10 +54,13 @@ export const auctionApi = {
     request(`/${auctionId}/close`, {
       method: 'POST',
     }),
+  getWinner: (auctionId) => request(`/${auctionId}/winner`),
   listBids: (auctionId) => request(`/${auctionId}/bids`),
   placeBid: (auctionId, payload) =>
     request(`/${auctionId}/bids`, {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
+  getListingBidStatus: (listingId) =>
+    request(`/internal/${encodeURIComponent(listingId)}/bids/status`),
 };
