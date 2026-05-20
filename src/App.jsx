@@ -8,12 +8,18 @@ import Wallet from './pages/Wallet';
 import TransactionHistory from './pages/TransactionHistory';
 import OrderList from './pages/OrderList';
 import NotificationList from './pages/NotificationList';
+import ListingList from './pages/ListingList';
+import ListingDetail from './pages/ListingDetail';
+import ListingCreate from './pages/ListingCreate';
 
 function App() {
   return (
     <Router>
       <Routes>
         <Route path="/" element={<LandingPage />} />
+        <Route path="/catalog" element={<ListingList />} />
+        <Route path="/catalog/new" element={<ListingCreate />} />
+        <Route path="/catalog/:listingId" element={<ListingDetail />} />
         <Route path="/auctions" element={<AuctionList />} />
         <Route path="/explore" element={<AuctionList />} />
         <Route path="/sell" element={<AuctionCreate />} />

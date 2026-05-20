@@ -10,7 +10,15 @@ export default defineConfig(({ mode }) => {
     server: {
       proxy: {
         '/api/auctions': {
-          target: env.VITE_AUCTION_SERVICE_URL || 'http://localhost:8080',
+          target: env.VITE_AUCTION_SERVICE_URL || 'http://localhost:8082',
+          changeOrigin: true,
+        },
+        '/listings': {
+          target: env.VITE_CATALOG_SERVICE_URL || 'http://localhost:8083',
+          changeOrigin: true,
+        },
+        '/api/categories': {
+          target: env.VITE_CATALOG_SERVICE_URL || 'http://localhost:8083',
           changeOrigin: true,
         },
       },

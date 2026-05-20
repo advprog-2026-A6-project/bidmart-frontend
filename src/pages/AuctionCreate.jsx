@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { CheckCircle2, Gavel, Play, Plus } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { auctionApi } from '../api/auctionApi';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
@@ -25,7 +25,11 @@ const toNumberOrNull = (value) => {
 
 const AuctionCreate = () => {
   const navigate = useNavigate();
-  const [form, setForm] = useState(initialForm);
+  const [searchParams] = useSearchParams();
+  const [form, setForm] = useState({
+    ...initialForm,
+    listingId: searchParams.get('listingId') || '',
+  });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 

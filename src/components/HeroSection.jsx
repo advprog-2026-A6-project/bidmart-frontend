@@ -20,11 +20,11 @@ const HeroSection = () => {
             Experience the thrill of real-time bidding. From vintage luxury watches to exclusive modern sports cars, find your next prized possession on BidMart.
           </p>
           <div className="hero-buttons">
-            <Link to="/explore" className="btn-primary btn-large" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              Start Bidding <ArrowRight size={20} />
+            <Link to="/catalog" className="btn-primary btn-large" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              Browse Catalog <ArrowRight size={20} />
             </Link>
-            <Link to="/sell" className="btn-outline btn-large">
-              Sell an Item
+            <Link to="/catalog/new" className="btn-outline btn-large">
+              Create Listing
             </Link>
           </div>
           
