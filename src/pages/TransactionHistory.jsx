@@ -4,15 +4,15 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { Filter, Clock, CheckCircle } from 'lucide-react';
 import { walletApi } from '../api/walletApi';
+import useAuth from '../context/useAuth';
 import './TransactionHistory.css';
 import './Wallet.css';
 
 const TransactionHistory = () => {
   const navigate = useNavigate();
 
-  // Mengambil data user secara dinamis dari localStorage
-  const storedUser = localStorage.getItem('user');
-  const currentUserId = storedUser ? JSON.parse(storedUser).id : null;
+  const { session } = useAuth();
+  const currentUserId = session?.userId;
 
   const [allTransactions, setAllTransactions] = useState([]);
   const [filteredTransactions, setFilteredTransactions] = useState([]);
