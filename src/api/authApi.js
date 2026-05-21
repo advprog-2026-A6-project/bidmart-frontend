@@ -1,10 +1,14 @@
 import { apiFetch } from './apiClient';
 
-const AUTH_API_BASE = import.meta.env.VITE_AUTH_API_BASE || '';
+const API_GATEWAY_BASE = (
+  import.meta.env.VITE_API_GATEWAY_BASE ||
+  import.meta.env.VITE_GATEWAY_URL ||
+  ''
+).replace(/\/$/, '');
 
 const postJson = (path, payload, config) =>
   apiFetch(
-    `${AUTH_API_BASE}${path}`,
+    `${API_GATEWAY_BASE}${path}`,
     {
       method: 'POST',
       body: JSON.stringify(payload),
@@ -14,7 +18,7 @@ const postJson = (path, payload, config) =>
 
 const putJson = (path, payload, config) =>
   apiFetch(
-    `${AUTH_API_BASE}${path}`,
+    `${API_GATEWAY_BASE}${path}`,
     {
       method: 'PUT',
       body: JSON.stringify(payload),
@@ -29,20 +33,20 @@ export const authApi = {
   login: (payload) => postJson('/api/auth/login', payload, { auth: false, retry: false }),
   verifyTwoFactor: (payload) => postJson('/api/auth/verify-2fa', payload, { auth: false, retry: false }),
   logout: (accessToken) =>
-    apiFetch(`${AUTH_API_BASE}/api/auth/logout`, {
+    apiFetch(`${API_GATEWAY_BASE}/api/auth/logout`, {
       method: 'POST',
       headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
     }),
-  validateSession: () => apiFetch(`${AUTH_API_BASE}/api/auth/validate`),
-  getProfile: () => apiFetch(`${AUTH_API_BASE}/api/profile`),
+  validateSession: () => apiFetch(`${API_GATEWAY_BASE}/api/auth/validate`),
+  getProfile: () => apiFetch(`${API_GATEWAY_BASE}/api/profile`),
   updateProfile: (payload) => putJson('/api/profile', payload),
-  generateTotpQr: () => apiFetch(`${AUTH_API_BASE}/api/profile/2fa/generate`),
+  generateTotpQr: () => apiFetch(`${API_GATEWAY_BASE}/api/profile/2fa/generate`),
   enableTotp: (code) => postJson('/api/profile/2fa/enable/totp', { code }),
   enableEmailTwoFactor: () => postJson('/api/profile/2fa/enable/email', {}),
   disableTwoFactor: () => postJson('/api/profile/2fa/disable', {}),
-  getSessions: () => apiFetch(`${AUTH_API_BASE}/api/profile/sessions`),
+  getSessions: () => apiFetch(`${API_GATEWAY_BASE}/api/profile/sessions`),
   revokeSession: (sessionId) =>
-    apiFetch(`${AUTH_API_BASE}/api/profile/sessions/${sessionId}`, {
+    apiFetch(`${API_GATEWAY_BASE}/api/profile/sessions/${sessionId}`, {
       method: 'DELETE',
     }),
   createPermission: (name) => postJson('/api/admin/rbac/permissions', { name }),
@@ -51,14 +55,14 @@ export const authApi = {
     postJson(`/api/admin/rbac/roles/${encodeURIComponent(roleName)}/permissions/${encodeURIComponent(permissionName)}`, {}),
   revokePermissionFromRole: (roleName, permissionName) =>
     apiFetch(
-      `${AUTH_API_BASE}/api/admin/rbac/roles/${encodeURIComponent(roleName)}/permissions/${encodeURIComponent(permissionName)}`,
+      `${API_GATEWAY_BASE}/api/admin/rbac/roles/${encodeURIComponent(roleName)}/permissions/${encodeURIComponent(permissionName)}`,
       { method: 'DELETE' },
     ),
   assignRoleToUser: (userId, roleName) =>
     postJson(`/api/admin/rbac/users/${encodeURIComponent(userId)}/roles/${encodeURIComponent(roleName)}`, {}),
   revokeRoleFromUser: (userId, roleName) =>
     apiFetch(
-      `${AUTH_API_BASE}/api/admin/rbac/users/${encodeURIComponent(userId)}/roles/${encodeURIComponent(roleName)}`,
+      `${API_GATEWAY_BASE}/api/admin/rbac/users/${encodeURIComponent(userId)}/roles/${encodeURIComponent(roleName)}`,
       { method: 'DELETE' },
     ),
   deactivateUser: (userId, reason) =>
