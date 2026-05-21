@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import {
   Clock,
@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { auctionApi } from '../api/auctionApi';
 import { catalogApi } from '../api/catalogApi';
+import { subscribeToOrderNotificationTopic } from '../api/orderNotificationLive';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import useAuth from '../context/useAuth';
@@ -56,22 +57,31 @@ const AuctionDetail = () => {
   const [error, setError] = useState('');
   const [actionMessage, setActionMessage] = useState('');
 
+  const loadAuctionData = useCallback(async () => {
+    const [auctionData, bidData] = await Promise.all([
+      auctionApi.getAuction(auctionId),
+      auctionApi.listBids(auctionId),
+    ]);
+    const [hydratedAuction] = await hydrateAuctionsWithListings(
+      [auctionData],
+      catalogApi.getListing,
+    );
+
+    return {
+      auction: hydratedAuction,
+      bids: Array.isArray(bidData) ? bidData : [],
+    };
+  }, [auctionId]);
+
   useEffect(() => {
     let ignore = false;
 
-    Promise.all([
-      auctionApi.getAuction(auctionId),
-      auctionApi.listBids(auctionId),
-    ])
-      .then(async ([auctionData, bidData]) => {
-        const [hydratedAuction] = await hydrateAuctionsWithListings(
-          [auctionData],
-          catalogApi.getListing,
-        );
+    loadAuctionData()
+      .then(({ auction: hydratedAuction, bids: bidData }) => {
 
         if (!ignore) {
           setAuction(hydratedAuction);
-          setBids(Array.isArray(bidData) ? bidData : []);
+          setBids(bidData);
           setBidAmount(String(getMinimumBid(hydratedAuction)));
         }
       })
@@ -89,23 +99,29 @@ const AuctionDetail = () => {
     return () => {
       ignore = true;
     };
-  }, [auctionId]);
+  }, [loadAuctionData]);
 
   const refreshAfterAction = async (message) => {
-    const [auctionData, bidData] = await Promise.all([
-      auctionApi.getAuction(auctionId),
-      auctionApi.listBids(auctionId),
-    ]);
-    const [hydratedAuction] = await hydrateAuctionsWithListings(
-      [auctionData],
-      catalogApi.getListing,
-    );
+    const { auction: hydratedAuction, bids: bidData } = await loadAuctionData();
 
     setAuction(hydratedAuction);
-    setBids(Array.isArray(bidData) ? bidData : []);
+    setBids(bidData);
     setBidAmount(String(getMinimumBid(hydratedAuction)));
     setActionMessage(message);
   };
+
+  useEffect(() => {
+    return subscribeToOrderNotificationTopic(`/topic/auctions/${auctionId}`, () => {
+      loadAuctionData()
+        .then(({ auction: nextAuction, bids: nextBids }) => {
+          setAuction(nextAuction);
+          setBids(nextBids);
+          setBidAmount(String(getMinimumBid(nextAuction)));
+          setActionMessage('Auction updated.');
+        })
+        .catch(() => {});
+    });
+  }, [auctionId, loadAuctionData]);
 
   const handlePlaceBid = async (event) => {
     event.preventDefault();

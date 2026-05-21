@@ -4,7 +4,7 @@ const API_GATEWAY_BASE = (
   import.meta.env.VITE_API_GATEWAY_BASE ||
   import.meta.env.VITE_GATEWAY_URL ||
   ''
-).replace(/\/$/, '');
+).trim().replace(/\/$/, '');
 const AUCTION_API_BASE = `${API_GATEWAY_BASE}/api/auctions`;
 
 const request = (path = '', options = {}) => apiFetch(`${AUCTION_API_BASE}${path}`, options);

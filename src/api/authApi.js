@@ -4,7 +4,7 @@ const API_GATEWAY_BASE = (
   import.meta.env.VITE_API_GATEWAY_BASE ||
   import.meta.env.VITE_GATEWAY_URL ||
   ''
-).replace(/\/$/, '');
+).trim().replace(/\/$/, '');
 
 const postJson = (path, payload, config) =>
   apiFetch(

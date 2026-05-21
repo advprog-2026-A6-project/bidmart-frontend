@@ -1,20 +1,40 @@
-import { useState, useEffect } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
-import { Bell, CheckCircle, Package, AlertCircle, Wallet, Save } from 'lucide-react';
+import { Bell, CheckCircle, Package, AlertCircle, Wallet, Save, Gavel } from 'lucide-react';
 import {
   getNotifications,
   getPreference,
   updatePreference,
 } from '../api/orderNotificationApi';
+import { subscribeToOrderNotificationTopic } from '../api/orderNotificationLive';
 import './Notifications.css';
 
 const DEFAULT_USER_ID = '1';
+
+const getToastTone = (notification = {}) => {
+  const status = String(notification.status || '').toLowerCase();
+  const message = String(notification.message || '').toLowerCase();
+  const type = String(notification.type || '').toLowerCase();
+
+  if (
+    status.includes('fail') ||
+    message.includes('gagal') ||
+    message.includes('failed') ||
+    message.includes('error') ||
+    type.includes('error')
+  ) {
+    return 'error';
+  }
+
+  return 'success';
+};
 
 const NotificationList = () => {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [savingPreference, setSavingPreference] = useState(false);
   const [error, setError] = useState(null);
+  const [liveToasts, setLiveToasts] = useState([]);
   const [userId, setUserId] = useState(() => localStorage.getItem('bidmartUserId') || DEFAULT_USER_ID);
   const [userIdInput, setUserIdInput] = useState(userId);
   const [preference, setPreference] = useState({
@@ -23,7 +43,7 @@ const NotificationList = () => {
     pushEnabled: true,
   });
 
-  const loadNotifications = (targetUserId = userId) => {
+  const loadNotifications = useCallback((targetUserId = userId) => {
     setLoading(true);
     setError(null);
 
@@ -46,11 +66,53 @@ const NotificationList = () => {
         setError(err.message);
         setLoading(false);
       });
-  };
+  }, [userId]);
 
   useEffect(() => {
-    loadNotifications(userId);
-  }, [userId]);
+    Promise.resolve().then(() => loadNotifications(userId));
+  }, [loadNotifications, userId]);
+
+  useEffect(() => {
+    if (!userId) return undefined;
+
+    return subscribeToOrderNotificationTopic(`/topic/notifications/${userId}`, (payload) => {
+      const message = typeof payload === 'string' ? payload : payload?.message;
+      if (!message) {
+        loadNotifications(userId);
+        return;
+      }
+
+      const toastId = `toast-${Date.now()}`;
+      setLiveToasts(current => [
+        ...current,
+        {
+          id: toastId,
+          message,
+          type: payload?.type || 'LIVE_NOTIFICATION',
+          tone: getToastTone(typeof payload === 'string' ? { message: payload } : payload),
+        },
+      ]);
+
+      setNotifications(current => [
+        {
+          id: `live-${Date.now()}`,
+          message,
+          type: payload?.type || 'LIVE_NOTIFICATION',
+          createdAt: new Date().toISOString(),
+          read: false,
+        },
+        ...current,
+      ]);
+
+      window.setTimeout(() => {
+        setLiveToasts(current => current.filter(toast => toast.id !== toastId));
+      }, 5000);
+
+      window.setTimeout(() => {
+        loadNotifications(userId);
+      }, 600);
+    });
+  }, [loadNotifications, userId]);
 
   const handleApplyUser = (event) => {
     event.preventDefault();
@@ -69,13 +131,42 @@ const NotificationList = () => {
           emailEnabled: Boolean(savedPreference.emailEnabled),
           pushEnabled: Boolean(savedPreference.pushEnabled),
         });
+        const toastId = `toast-${Date.now()}`;
+        setLiveToasts(current => [
+          ...current,
+          {
+            id: toastId,
+            message: 'Preferensi notifikasi berhasil disimpan.',
+            type: 'PREFERENCE_SAVED',
+            tone: 'success',
+          },
+        ]);
+        window.setTimeout(() => {
+          setLiveToasts(current => current.filter(toast => toast.id !== toastId));
+        }, 5000);
       })
-      .catch(err => alert(err.message))
+      .catch(err => {
+        const toastId = `toast-${Date.now()}`;
+        setLiveToasts(current => [
+          ...current,
+          {
+            id: toastId,
+            message: err.message || 'Preferensi notifikasi gagal disimpan.',
+            type: 'PREFERENCE_FAILED',
+            tone: 'error',
+          },
+        ]);
+        window.setTimeout(() => {
+          setLiveToasts(current => current.filter(toast => toast.id !== toastId));
+        }, 5000);
+      })
       .finally(() => setSavingPreference(false));
   };
 
   const getIcon = (type) => {
     if (!type) return <Bell className="notif-icon" />;
+    if (type.includes('BID') || type.includes('OUTBID')) return <Gavel className="notif-icon text-primary" />;
+    if (type.includes('PACKED')) return <Package className="notif-icon text-primary" />;
     if (type.includes('SHIPPED')) return <Package className="notif-icon text-primary" />;
     if (type.includes('WALLET')) return <Wallet className="notif-icon text-wallet" />;
     if (type.includes('WON') || type.includes('COMPLETED') || type.includes('CREATED')) return <CheckCircle className="notif-icon text-success" />;
@@ -86,6 +177,16 @@ const NotificationList = () => {
   return (
     <div className="page-wrapper">
       <Navbar />
+      <div className="live-toast-stack" aria-live="polite" aria-atomic="false">
+        {liveToasts.map(toast => (
+          <div key={toast.id} className={`live-toast live-toast-${toast.tone || 'success'}`}>
+            <div className="live-toast-icon">
+              {getIcon(toast.type)}
+            </div>
+            <p>{toast.message}</p>
+          </div>
+        ))}
+      </div>
       <div className="container">
         <div className="page-header d-flex justify-between align-center notification-page-header">
           <div>
