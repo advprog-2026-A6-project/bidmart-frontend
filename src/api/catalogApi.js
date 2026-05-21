@@ -1,39 +1,8 @@
+import { apiFetch } from './apiClient';
+
 const CATALOG_API_BASE = import.meta.env.VITE_CATALOG_API_BASE || '';
 
-const defaultHeaders = {
-  'Content-Type': 'application/json',
-};
-
-const parseResponse = async (response) => {
-  const contentType = response.headers.get('content-type') || '';
-  const payload = contentType.includes('application/json')
-    ? await response.json()
-    : await response.text();
-
-  if (!response.ok) {
-    const message =
-      payload?.message ||
-      payload?.error ||
-      (typeof payload === 'string' && payload) ||
-      `Request failed with status ${response.status}`;
-
-    throw new Error(message);
-  }
-
-  return payload;
-};
-
-const request = async (path, options = {}) => {
-  const response = await fetch(`${CATALOG_API_BASE}${path}`, {
-    ...options,
-    headers: {
-      ...defaultHeaders,
-      ...options.headers,
-    },
-  });
-
-  return parseResponse(response);
-};
+const request = (path, options = {}) => apiFetch(`${CATALOG_API_BASE}${path}`, options);
 
 const buildSearchQuery = (filters = {}) => {
   const params = new URLSearchParams();
@@ -59,11 +28,17 @@ export const catalogApi = {
   createListing: (payload) =>
     request('/listings', {
       method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify(payload),
     }),
   updateListing: (listingId, payload) =>
     request(`/listings/${listingId}`, {
       method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify(payload),
     }),
   cancelListing: (listingId) =>

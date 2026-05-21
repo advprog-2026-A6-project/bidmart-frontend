@@ -26,6 +26,79 @@
 .text-muted { color: var(--text-light); }
 .text-center { text-align: center; }
 
+.notification-page-header {
+  gap: 1rem;
+}
+
+.user-filter {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.user-filter input,
+.preference-email {
+  height: 42px;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  padding: 0 0.75rem;
+  font: inherit;
+  color: var(--text-dark);
+  background: var(--primary-white);
+}
+
+.user-filter input:focus,
+.preference-email:focus {
+  outline: none;
+  border-color: var(--secondary-red);
+}
+
+.preference-panel {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(220px, 1.2fr) auto auto auto;
+  gap: 1rem;
+  align-items: center;
+  background: var(--primary-white);
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.preference-panel h2 {
+  font-size: 1rem;
+  color: var(--tertiary-blue);
+  margin: 0;
+}
+
+.preference-panel p {
+  color: var(--text-light);
+  font-size: 0.85rem;
+  margin: 0.15rem 0 0;
+}
+
+.preference-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--text-dark);
+  font-weight: 600;
+}
+
+.preference-save {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  height: 42px;
+  padding: 0 1rem;
+}
+
+.btn-primary { background: var(--secondary-red); color: white; border: none; border-radius: 8px; }
+.btn-primary:hover { background: var(--secondary-red-hover); }
+.btn-outline { background: white; border: 1px solid var(--border-light); color: var(--text-dark); border-radius: 8px; padding: 0.65rem 1rem; }
+.btn-outline:hover { background: var(--primary-bg); }
+
 .notification-list {
   display: flex;
   flex-direction: column;
@@ -83,6 +156,7 @@
 .text-primary { color: var(--secondary-red); }
 .text-success { color: #10b981; }
 .text-danger { color: #ef4444; }
+.text-wallet { color: #2563eb; }
 
 .unread-dot {
   width: 10px;
@@ -114,4 +188,16 @@
   padding: 3rem;
   color: var(--text-light);
   font-size: 1.1rem;
+}
+
+@media (max-width: 900px) {
+  .notification-page-header,
+  .user-filter {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .preference-panel {
+    grid-template-columns: 1fr;
+  }
 }

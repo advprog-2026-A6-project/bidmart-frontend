@@ -20,7 +20,7 @@
 
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 24px;
   margin-bottom: 40px;
 }
@@ -60,7 +60,7 @@
 .text-red { color: #b91c1c; }
 
 .stat-info h3 {
-  font-size: 1.8rem;
+  font-size: 1.5rem;
   font-weight: 700;
   color: var(--text-dark);
   line-height: 1.2;
@@ -89,6 +89,7 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
+  gap: 1rem;
 }
 
 .section-title h2 {
@@ -109,84 +110,35 @@
   text-decoration: underline;
 }
 
-.bid-list {
-  display: flex;
-  flex-direction: column;
+.ops-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
 }
 
-.bid-item {
+.ops-card {
   background: white;
   border: 1px solid var(--border-light);
   border-radius: 16px;
   padding: 20px;
+  display: grid;
+  gap: 1rem;
+}
+
+.ops-card-header {
   display: flex;
   align-items: center;
-  gap: 20px;
-}
-
-.bid-image {
-  width: 80px;
-  height: 80px;
-  border-radius: 12px;
-  background-color: #f1f5f9;
-}
-
-.placeholder-img {
-  background: linear-gradient(135deg, #e2e8f0, #cbd5e1);
-}
-
-.placeholder-img-2 {
-  background: linear-gradient(135deg, #fecaca, #f87171);
-}
-
-.bid-details {
-  flex: 1;
-}
-
-.bid-details h4 {
-  font-size: 1.1rem;
-  margin-bottom: 4px;
-}
-
-.bid-amount {
-  color: var(--text-light);
-  font-size: 0.9rem;
-  margin-bottom: 8px;
-}
-
-.bid-amount strong {
-  color: var(--text-dark);
-}
-
-.status {
-  font-size: 0.85rem;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.dot {
-  width: 8px; height: 8px; border-radius: 50%;
-}
-.dot-green { background: #16a34a; }
-.dot-red { background: var(--secondary-red); }
-
-.leading { color: #16a34a; }
-.outbid { color: var(--secondary-red); }
-
-.bid-time {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 12px;
-}
-
-.time-left {
-  font-weight: 600;
+  gap: 0.65rem;
   color: var(--tertiary-blue);
-  font-size: 0.9rem;
+}
+
+.ops-card h3 {
+  font-size: 1rem;
+}
+
+.ops-card p {
+  color: var(--text-light);
+  font-size: 0.95rem;
 }
 
 .btn-ghost.small, .btn-primary.small {
@@ -226,4 +178,31 @@
 .full-width {
   width: 100%;
   display: block;
+}
+
+.auth-summary-card {
+  display: grid;
+  gap: 1rem;
+  text-align: left;
+}
+
+.auth-summary-values h2 {
+  font-size: 2rem;
+}
+
+.auth-summary-meta {
+  display: grid;
+  gap: 0.5rem;
+  color: var(--text-light);
+  font-size: 0.95rem;
+}
+
+.auth-summary-meta strong {
+  color: var(--text-dark);
+}
+
+@media (max-width: 720px) {
+  .ops-grid {
+    grid-template-columns: 1fr;
+  }
 }

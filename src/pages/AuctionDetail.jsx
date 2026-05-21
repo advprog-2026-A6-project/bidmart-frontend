@@ -13,6 +13,7 @@ import {
 import { auctionApi } from '../api/auctionApi';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import useAuth from '../context/useAuth';
 import {
   formatCurrency,
   formatDateTime,
@@ -23,13 +24,22 @@ import {
 } from '../utils/auctionFormatters';
 import './AuctionDetail.css';
 
+const resolveBidderName = (profile, session) =>
+  profile?.name || profile?.email || session?.email || 'Authenticated bidder';
+
+const resolveUserId = (profile, session) => {
+  const rawUserId = session?.userId ?? profile?.id ?? profile?.userId;
+  const numericUserId = Number(rawUserId);
+
+  return Number.isFinite(numericUserId) ? numericUserId : null;
+};
+
 const AuctionDetail = () => {
   const { auctionId } = useParams();
+  const { isAuthenticated, profile, session } = useAuth();
   const [auction, setAuction] = useState(null);
   const [bids, setBids] = useState([]);
   const [bidAmount, setBidAmount] = useState('');
-  const [bidderName, setBidderName] = useState('');
-  const [bidderId, setBidderId] = useState('');
   const [maxAutoBid, setMaxAutoBid] = useState('');
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -85,9 +95,17 @@ const AuctionDetail = () => {
     setActionMessage('');
 
     try {
+      const bidderId = resolveUserId(profile, session);
+
+      if (!bidderId) {
+        throw new Error('User id numerik tidak ditemukan dari sesi auth. Silakan login ulang.');
+      }
+
+      const bidderName = resolveBidderName(profile, session);
+
       await auctionApi.placeBid(auctionId, {
-        bidderName: bidderName.trim(),
-        bidderId: bidderId.trim() || null,
+        bidderName,
+        bidderId,
         amount: Number(bidAmount),
         maxAutoBid: maxAutoBid ? Number(maxAutoBid) : null,
       });
@@ -238,7 +256,7 @@ const AuctionDetail = () => {
                   {error && <div className="auction-action-message error">{error}</div>}
                   {actionMessage && <div className="auction-action-message success">{actionMessage}</div>}
 
-                  {isRunningAuction ? (
+                  {isRunningAuction && isAuthenticated && (
                     <form onSubmit={handlePlaceBid}>
                       <label className="bid-input-label" htmlFor="bidderName">
                         Bidder Name
@@ -249,23 +267,8 @@ const AuctionDetail = () => {
                           id="bidderName"
                           required
                           type="text"
-                          value={bidderName}
-                          onChange={(event) => setBidderName(event.target.value)}
-                          placeholder="Your display name"
-                        />
-                      </div>
-
-                      <label className="bid-input-label" htmlFor="bidderId">
-                        Bidder ID
-                      </label>
-                      <div className="bid-input-wrap">
-                        <span>ID</span>
-                        <input
-                          id="bidderId"
-                          type="text"
-                          value={bidderId}
-                          onChange={(event) => setBidderId(event.target.value)}
-                          placeholder="Optional"
+                          value={resolveBidderName(profile, session)}
+                          readOnly
                         />
                       </div>
 
@@ -310,7 +313,15 @@ const AuctionDetail = () => {
                         {submitting ? 'Submitting...' : 'Place Bid'}
                       </button>
                     </form>
-                  ) : (
+                  )}
+
+                  {isRunningAuction && !isAuthenticated && (
+                    <div className="auction-unavailable-note">
+                      Please log in to place a bid.
+                    </div>
+                  )}
+
+                  {!isRunningAuction && (
                     <div className="auction-unavailable-note">
                       Bidding is available only when auction status is ACTIVE or EXTENDED.
                     </div>

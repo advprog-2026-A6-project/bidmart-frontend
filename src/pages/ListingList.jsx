@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ArrowRight, Clock, Package, Plus, RefreshCw, Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { catalogApi } from '../api/catalogApi';
@@ -43,16 +43,16 @@ const ListingList = () => {
         activeFilters.endBefore,
     );
 
-  const loadCategories = async () => {
+  const loadCategories = useCallback(async () => {
     try {
       const tree = await catalogApi.getCategoryTree();
       setCategories(Array.isArray(tree) ? tree : []);
     } catch {
       setCategories([]);
     }
-  };
+  }, []);
 
-  const loadListings = async (activeFilters = filters) => {
+  const loadListings = useCallback(async (activeFilters = filters) => {
     setLoading(true);
     setError('');
 
@@ -67,12 +67,16 @@ const ListingList = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters]);
 
   useEffect(() => {
-    loadCategories();
-    loadListings(initialFilters);
-  }, []);
+    const timeoutId = window.setTimeout(() => {
+      loadCategories();
+      loadListings(initialFilters);
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [loadCategories, loadListings]);
 
   const updateFilter = (field, value) => {
     setFilters((current) => ({ ...current, [field]: value }));

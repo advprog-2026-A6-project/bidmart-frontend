@@ -40,9 +40,9 @@ const Footer = () => {
           <div className="footer-col">
             <h4>Account</h4>
             <ul className="footer-links">
-              <li><Link to="/login">Log In</Link></li>
-              <li><Link to="/register">Sign Up</Link></li>
-              <li><Link to="/sell">Become a Seller</Link></li>
+              <li><Link to="/auth?mode=login">Log In</Link></li>
+              <li><Link to="/auth?mode=register">Sign Up</Link></li>
+              <li><Link to="/account">Account Settings</Link></li>
             </ul>
           </div>
         </div>
