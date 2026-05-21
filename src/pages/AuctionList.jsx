@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ArrowRight, Clock, Gavel, Plus, RefreshCw, Search } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { auctionApi } from '../api/auctionApi';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
@@ -17,10 +17,11 @@ const statusOptions = ['ALL', 'ACTIVE', 'DRAFT', 'EXTENDED', 'WON', 'UNSOLD', 'C
 
 const AuctionList = () => {
   const { hasAnyAuthority } = useAuth();
+  const [searchParams] = useSearchParams();
   const [auctions, setAuctions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState(() => searchParams.get('listingId') || '');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const canCreateAuction = hasAnyAuthority(['auction:create']);
 
