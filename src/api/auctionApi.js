@@ -1,6 +1,11 @@
 import { apiFetch } from './apiClient';
 
-const AUCTION_API_BASE = import.meta.env.VITE_AUCTION_API_BASE || '/api/auctions';
+const API_GATEWAY_BASE = (
+  import.meta.env.VITE_API_GATEWAY_BASE ||
+  import.meta.env.VITE_GATEWAY_URL ||
+  ''
+).replace(/\/$/, '');
+const AUCTION_API_BASE = `${API_GATEWAY_BASE}/api/auctions`;
 
 const request = (path = '', options = {}) => apiFetch(`${AUCTION_API_BASE}${path}`, options);
 
