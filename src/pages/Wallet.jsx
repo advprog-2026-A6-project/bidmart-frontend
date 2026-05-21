@@ -31,9 +31,9 @@ const Wallet = () => {
     try {
       setIsLoading(true);
       const [wallet, bank, history] = await Promise.all([
-        walletApi.getWallet(),
-        walletApi.getBankAccount(),
-        walletApi.getHistory()
+        walletApi.getWallet(currentUserId),
+        walletApi.getBankAccount(currentUserId),
+        walletApi.getHistory(currentUserId)
       ]);
 
       setAvailableBalance(wallet.balance || 0);
@@ -60,7 +60,7 @@ const Wallet = () => {
       return;
     }
     try {
-      const data = await walletApi.initiateTopUp(topUpAmount);
+      const data = await walletApi.initiateTopUp(currentUserId, topUpAmount);
       setActiveVaDetails(data);
       setTopUpStep(2);
     } catch (err) {
@@ -70,7 +70,7 @@ const Wallet = () => {
 
   const handleConfirmPayment = async () => {
     try {
-      await walletApi.confirmTopUp(activeVaDetails.amountToPay, activeVaDetails.paymentReference);
+      await walletApi.confirmTopUp(currentUserId, activeVaDetails.amountToPay, activeVaDetails.paymentReference);
       alert("Top up sukses disimulasikan!");
       setShowTopUpModal(false);
       setTopUpAmount('');
@@ -88,7 +88,7 @@ const Wallet = () => {
       return;
     }
     try {
-      await walletApi.withdraw(withdrawAmount);
+      await walletApi.withdraw(currentUserId, withdrawAmount);
       alert("Penarikan dana berhasil dikirim ke rekening bank Anda!");
       setShowWithdrawModal(false);
       setWithdrawAmount('');
