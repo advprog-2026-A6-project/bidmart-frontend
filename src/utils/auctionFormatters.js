@@ -22,8 +22,17 @@ export const formatDateTime = (value) => {
   return dateTimeFormatter.format(new Date(value));
 };
 
-export const getCurrentPrice = (auction) =>
-  Number(auction?.currentHighestBid ?? auction?.startPrice ?? 0);
+export const getCurrentPrice = (auction) => {
+  const listing = auction?.listing || auction?.item || auction?.catalogListing || auction?.listingDetail;
+
+  return Number(
+    auction?.currentHighestBid ??
+      auction?.startPrice ??
+      listing?.currentPrice ??
+      listing?.startingPrice ??
+      0,
+  );
+};
 
 export const getMinimumBid = (auction) => {
   const currentPrice = getCurrentPrice(auction);

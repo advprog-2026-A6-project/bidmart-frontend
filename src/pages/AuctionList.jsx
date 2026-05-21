@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ArrowRight, Clock, Gavel, Plus, RefreshCw, Search } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { auctionApi } from '../api/auctionApi';
+import { catalogApi } from '../api/catalogApi';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import useAuth from '../context/useAuth';
@@ -11,6 +12,13 @@ import {
   getStatusLabel,
   getTimeLeft,
 } from '../utils/auctionFormatters';
+import {
+  getAuctionDescription,
+  getAuctionImageUrl,
+  getAuctionSellerName,
+  getAuctionTitle,
+  hydrateAuctionsWithListings,
+} from '../utils/auctionListing';
 import './AuctionList.css';
 
 const statusOptions = ['ALL', 'ACTIVE', 'DRAFT', 'EXTENDED', 'WON', 'UNSOLD', 'CLOSED'];
@@ -25,45 +33,28 @@ const AuctionList = () => {
   const [statusFilter, setStatusFilter] = useState('ALL');
   const canCreateAuction = hasAnyAuthority(['auction:create']);
 
-  const loadAuctions = async () => {
+  const loadAuctions = useCallback(async () => {
     setLoading(true);
     setError('');
 
     try {
       const data = await auctionApi.listAuctions();
-      setAuctions(Array.isArray(data) ? data : []);
+      const hydratedAuctions = await hydrateAuctionsWithListings(data, catalogApi.getListing);
+      setAuctions(hydratedAuctions);
     } catch (err) {
       setError(err.message || 'Failed to load auctions');
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    let ignore = false;
+    const timeoutId = window.setTimeout(() => {
+      loadAuctions();
+    }, 0);
 
-    auctionApi
-      .listAuctions()
-      .then((data) => {
-        if (!ignore) {
-          setAuctions(Array.isArray(data) ? data : []);
-        }
-      })
-      .catch((err) => {
-        if (!ignore) {
-          setError(err.message || 'Failed to load auctions');
-        }
-      })
-      .finally(() => {
-        if (!ignore) {
-          setLoading(false);
-        }
-      });
-
-    return () => {
-      ignore = true;
-    };
-  }, []);
+    return () => window.clearTimeout(timeoutId);
+  }, [loadAuctions]);
 
   const filteredAuctions = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -72,8 +63,9 @@ const AuctionList = () => {
       const matchesStatus = statusFilter === 'ALL' || auction.status === statusFilter;
       const searchableText = [
         auction.title,
-        auction.description,
-        auction.sellerId,
+        getAuctionTitle(auction),
+        getAuctionDescription(auction),
+        getAuctionSellerName(auction),
         auction.listingId,
       ]
         .filter(Boolean)
@@ -166,7 +158,11 @@ const AuctionList = () => {
               {filteredAuctions.map((auction) => (
                 <Link className="auction-list-card" key={auction.id} to={`/auctions/${auction.id}`}>
                   <div className="auction-card-visual">
-                    <Gavel size={48} strokeWidth={1.7} />
+                    {getAuctionImageUrl(auction) ? (
+                      <img src={getAuctionImageUrl(auction)} alt={getAuctionTitle(auction)} loading="lazy" />
+                    ) : (
+                      <Gavel size={48} strokeWidth={1.7} />
+                    )}
                     <span className={`auction-status-chip status-${String(auction.status).toLowerCase()}`}>
                       {getStatusLabel(auction.status)}
                     </span>
@@ -174,8 +170,8 @@ const AuctionList = () => {
 
                   <div className="auction-list-card-body">
                     <div>
-                      <h2>{auction.title}</h2>
-                      <p>{auction.description || 'No description provided.'}</p>
+                      <h2>{getAuctionTitle(auction)}</h2>
+                      <p>{getAuctionDescription(auction) || 'No description provided.'}</p>
                     </div>
 
                     <div className="auction-list-meta">
@@ -185,7 +181,7 @@ const AuctionList = () => {
                       </div>
                       <div>
                         <span>Seller</span>
-                        <strong>{auction.sellerId || 'System seller'}</strong>
+                        <strong>{getAuctionSellerName(auction)}</strong>
                       </div>
                     </div>
 
