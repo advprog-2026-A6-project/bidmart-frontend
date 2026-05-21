@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { CheckCircle2, Gavel, Play, Plus } from 'lucide-react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { auctionApi } from '../api/auctionApi';
+import { catalogApi } from '../api/catalogApi';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import { formatCurrency } from '../utils/auctionFormatters';
 import './AuctionCreate.css';
 
 const initialForm = {
@@ -30,8 +32,44 @@ const AuctionCreate = () => {
     ...initialForm,
     listingId: searchParams.get('listingId') || '',
   });
+  const [linkedListing, setLinkedListing] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    const listingId = searchParams.get('listingId');
+
+    if (!listingId) {
+      return undefined;
+    }
+
+    let ignore = false;
+
+    catalogApi
+      .getListing(listingId)
+      .then((listing) => {
+        if (ignore) return;
+
+        setLinkedListing(listing);
+        setForm((current) => ({
+          ...current,
+          title: current.title || listing.title || '',
+          description: current.description || listing.description || '',
+          sellerId: current.sellerId || String(listing.sellerId || ''),
+          startPrice: current.startPrice || String(listing.startingPrice || ''),
+          reservePrice: current.reservePrice || String(listing.reservePrice || ''),
+        }));
+      })
+      .catch(() => {
+        if (!ignore) {
+          setLinkedListing(null);
+        }
+      });
+
+    return () => {
+      ignore = true;
+    };
+  }, [searchParams]);
 
   const updateField = (field, value) => {
     setForm((current) => ({ ...current, [field]: value }));
@@ -44,15 +82,18 @@ const AuctionCreate = () => {
 
     try {
       const payload = {
-        title: form.title.trim(),
-        description: form.description.trim() || null,
         listingId: form.listingId.trim() || null,
-        sellerId: form.sellerId.trim() || null,
         startPrice: Number(form.startPrice),
         minIncrement: Number(form.minIncrement),
         reservePrice: toNumberOrNull(form.reservePrice),
         durationMinutes: Number(form.durationMinutes),
       };
+
+      if (!linkedListing) {
+        payload.title = form.title.trim();
+        payload.description = form.description.trim() || null;
+        payload.sellerId = form.sellerId.trim() || null;
+      }
 
       const createdAuction = await auctionApi.createAuction(payload);
       const finalAuction = form.activateNow
@@ -91,6 +132,7 @@ const AuctionCreate = () => {
                   <input
                     required
                     type="text"
+                    disabled={Boolean(linkedListing)}
                     value={form.title}
                     onChange={(event) => updateField('title', event.target.value)}
                     placeholder="Vintage camera, signed jersey, rare watch"
@@ -101,6 +143,7 @@ const AuctionCreate = () => {
                   <span>Description</span>
                   <textarea
                     rows="5"
+                    disabled={Boolean(linkedListing)}
                     value={form.description}
                     onChange={(event) => updateField('description', event.target.value)}
                     placeholder="Condition, provenance, included accessories, and delivery notes"
@@ -112,6 +155,7 @@ const AuctionCreate = () => {
                     <span>Listing ID</span>
                     <input
                       type="text"
+                      required={Boolean(linkedListing)}
                       value={form.listingId}
                       onChange={(event) => updateField('listingId', event.target.value)}
                       placeholder="Optional"
@@ -122,6 +166,7 @@ const AuctionCreate = () => {
                     <span>Seller ID</span>
                     <input
                       type="text"
+                      disabled={Boolean(linkedListing)}
                       value={form.sellerId}
                       onChange={(event) => updateField('sellerId', event.target.value)}
                       placeholder="Optional"
@@ -191,6 +236,14 @@ const AuctionCreate = () => {
             <aside className="auction-submit-panel">
               <h2>Publish</h2>
               <p>Backend creates auctions as drafts. Turn on activation to make bidding available now.</p>
+
+              {linkedListing ? (
+                <div className="auction-linked-listing">
+                  <span>Linked listing</span>
+                  <strong>{linkedListing.title}</strong>
+                  <small>{formatCurrency(linkedListing.startingPrice)} starting price</small>
+                </div>
+              ) : null}
 
               <label className="auction-toggle">
                 <input

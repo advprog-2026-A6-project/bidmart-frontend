@@ -6,12 +6,14 @@ import {
   Image,
   Pencil,
   Shield,
+  ShoppingCart,
   Tag,
   Trash2,
   User,
   XCircle,
 } from 'lucide-react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import { auctionApi } from '../api/auctionApi';
 import { catalogApi } from '../api/catalogApi';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
@@ -26,10 +28,11 @@ import '../styles/catalogPage.css';
 import './ListingDetail.css';
 
 const ListingDetail = () => {
-  const { hasAnyAuthority } = useAuth();
+  const { hasAnyAuthority, profile, session } = useAuth();
   const { listingId } = useParams();
   const navigate = useNavigate();
   const [listing, setListing] = useState(null);
+  const [linkedAuction, setLinkedAuction] = useState(null);
   const [editForm, setEditForm] = useState({ description: '', imageUrl: '' });
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -54,6 +57,36 @@ const ListingDetail = () => {
       setLoading(false);
     }
   }, [listingId]);
+
+  useEffect(() => {
+    if (!listing?.id) {
+      return undefined;
+    }
+
+    let ignore = false;
+
+    auctionApi
+      .listAuctions()
+      .then((data) => {
+        if (ignore) return;
+
+        const auctions = Array.isArray(data) ? data : [];
+        const matchingAuction = auctions.find(
+          (auction) => String(auction.listingId) === String(listing.id),
+        );
+
+        setLinkedAuction(matchingAuction || null);
+      })
+      .catch(() => {
+        if (!ignore) {
+          setLinkedAuction(null);
+        }
+      });
+
+    return () => {
+      ignore = true;
+    };
+  }, [listing?.id]);
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
@@ -120,6 +153,13 @@ const ListingDetail = () => {
 
   const canEdit = listing?.status === 'ACTIVE';
   const canCancel = listing?.status === 'ACTIVE';
+  const sellerDisplayName = listing?.sellerName || listing?.sellerId || 'Unknown';
+  const categoryDisplayName = listing?.categoryName || listing?.category?.name || 'Uncategorized';
+  const currentUserId = session?.userId ?? profile?.id ?? profile?.userId;
+  const isListingOwner = currentUserId != null && String(currentUserId) === String(listing?.sellerId);
+  const canManageListing = Boolean(canCreateAuction && isListingOwner);
+  const activeLinkedAuction =
+    linkedAuction && ['ACTIVE', 'EXTENDED'].includes(String(linkedAuction.status));
 
   return (
     <>
@@ -188,11 +228,11 @@ const ListingDetail = () => {
                       </div>
                       <div>
                         <span>Category</span>
-                        <strong>{listing.category?.name || 'Uncategorized'}</strong>
+                        <strong>{categoryDisplayName}</strong>
                       </div>
                       <div>
                         <span>Seller</span>
-                        <strong>{listing.sellerId || 'Unknown'}</strong>
+                        <strong>{sellerDisplayName}</strong>
                       </div>
                       <div>
                         <span>Listing ID</span>
@@ -214,75 +254,99 @@ const ListingDetail = () => {
                 </div>
 
                 <aside className="listing-detail-sidebar">
-                  <div className="listing-side-card">
-                    <h2>Seller Actions</h2>
-                    <p>Update media and description only while the listing has no bids.</p>
+                  {canManageListing ? (
+                    <div className="listing-side-card">
+                      <h2>Seller Actions</h2>
+                      <p>Update media and description only while the listing has no bids.</p>
 
-                    <form className="listing-edit-form" onSubmit={handleUpdate}>
-                      <label className="listing-field">
-                        <span>Description</span>
-                        <textarea
-                          rows="4"
-                          value={editForm.description}
-                          disabled={!canEdit || submitting}
-                          onChange={(event) =>
-                            setEditForm((current) => ({
-                              ...current,
-                              description: event.target.value,
-                            }))
-                          }
-                        />
-                      </label>
+                      <form className="listing-edit-form" onSubmit={handleUpdate}>
+                        <label className="listing-field">
+                          <span>Description</span>
+                          <textarea
+                            rows="4"
+                            value={editForm.description}
+                            disabled={!canEdit || submitting}
+                            onChange={(event) =>
+                              setEditForm((current) => ({
+                                ...current,
+                                description: event.target.value,
+                              }))
+                            }
+                          />
+                        </label>
 
-                      <label className="listing-field">
-                        <span>Image URL</span>
-                        <input
-                          type="url"
-                          value={editForm.imageUrl}
+                        <label className="listing-field">
+                          <span>Image URL</span>
+                          <input
+                            type="url"
+                            value={editForm.imageUrl}
+                            disabled={!canEdit || submitting}
+                            onChange={(event) =>
+                              setEditForm((current) => ({
+                                ...current,
+                                imageUrl: event.target.value,
+                              }))
+                            }
+                          />
+                        </label>
+
+                        <button
+                          className="btn-primary listing-action-button"
+                          type="submit"
                           disabled={!canEdit || submitting}
-                          onChange={(event) =>
-                            setEditForm((current) => ({
-                              ...current,
-                              imageUrl: event.target.value,
-                            }))
-                          }
-                        />
-                      </label>
+                        >
+                          <Pencil size={16} />
+                          Save Changes
+                        </button>
+                      </form>
+
+                      {canCancel && (
+                        <button
+                          className="btn-outline listing-action-button"
+                          type="button"
+                          disabled={submitting}
+                          onClick={handleCancel}
+                        >
+                          <XCircle size={16} />
+                          Cancel Listing
+                        </button>
+                      )}
 
                       <button
-                        className="btn-primary listing-action-button"
-                        type="submit"
-                        disabled={!canEdit || submitting}
-                      >
-                        <Pencil size={16} />
-                        Save Changes
-                      </button>
-                    </form>
-
-                    {canCancel && (
-                      <button
-                        className="btn-outline listing-action-button"
+                        className="btn-outline listing-action-button danger"
                         type="button"
                         disabled={submitting}
-                        onClick={handleCancel}
+                        onClick={handleDelete}
                       >
-                        <XCircle size={16} />
-                        Cancel Listing
+                        <Trash2 size={16} />
+                        Delete Listing
                       </button>
-                    )}
+                    </div>
+                  ) : (
+                    <div className="listing-side-card">
+                      <h2>Buyer Options</h2>
+                      <p>Catalog items are purchased through auctions. Open the matching auction to place a bid.</p>
+                      {activeLinkedAuction ? (
+                        <Link
+                          className="btn-primary listing-action-button"
+                          to={`/auctions/${linkedAuction.id}`}
+                        >
+                          <ShoppingCart size={16} />
+                          Place Bid
+                        </Link>
+                      ) : (
+                        <Link
+                          className="btn-primary listing-action-button"
+                          to={`/auctions?listingId=${listing.id}`}
+                        >
+                          <Gavel size={16} />
+                          Find Auction
+                        </Link>
+                      )}
+                    </div>
+                  )}
 
-                    <button
-                      className="btn-outline listing-action-button danger"
-                      type="button"
-                      disabled={submitting}
-                      onClick={handleDelete}
-                    >
-                      <Trash2 size={16} />
-                      Delete Listing
-                    </button>
-                  </div>
-
-                  {canCreateAuction ? (
+                  {canManageListing ? (
                     <div className="listing-side-card">
                       <h2>Start Auction</h2>
                       <p>Use this listing ID when creating an auction in the auction module.</p>
@@ -307,8 +371,14 @@ const ListingDetail = () => {
                     </p>
                     <p>
                       <User size={16} />
-                      Seller {listing.sellerId}
+                      Seller {sellerDisplayName}
                     </p>
+                    {listing.sellerBio ? (
+                      <p>
+                        <User size={16} />
+                        {listing.sellerBio}
+                      </p>
+                    ) : null}
                   </div>
                 </aside>
               </div>
