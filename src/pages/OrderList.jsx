@@ -1,15 +1,25 @@
-import { useState, useEffect } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
-import { CheckCircle, AlertCircle, Clock, Pencil } from 'lucide-react';
+import { CheckCircle, AlertCircle, Clock, Package, Pencil } from 'lucide-react';
 import {
   confirmReceipt,
   getOrders,
+  getOrdersByUser,
+  markOrderPacked,
   submitDispute,
   updateTrackingNumber,
 } from '../api/orderNotificationApi';
+import useAuth from '../context/useAuth';
 import './Orders.css';
 
+const resolveUserId = (profile, session) => {
+  const rawUserId = session?.userId ?? profile?.id ?? profile?.userId ?? localStorage.getItem('bidmartUserId');
+  return rawUserId ? String(rawUserId) : '';
+};
+
 const OrderList = () => {
+  const { profile, session } = useAuth();
+  const userId = resolveUserId(profile, session);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -18,10 +28,12 @@ const OrderList = () => {
   const [trackingOrderId, setTrackingOrderId] = useState(null);
   const [trackingNumber, setTrackingNumber] = useState('');
 
-  const fetchOrders = () => {
+  const fetchOrders = useCallback(() => {
     setLoading(true);
     setError(null);
-    getOrders()
+    const orderRequest = userId ? getOrdersByUser(userId) : getOrders();
+
+    orderRequest
       .then(data => {
         setOrders(data);
         setLoading(false);
@@ -30,11 +42,17 @@ const OrderList = () => {
         setError(err.message);
         setLoading(false);
       });
-  };
+  }, [userId]);
 
   useEffect(() => {
-    fetchOrders();
-  }, []);
+    Promise.resolve().then(fetchOrders);
+  }, [fetchOrders]);
+
+  const handleMarkPacked = (orderId) => {
+    markOrderPacked(orderId)
+      .then(() => fetchOrders())
+      .catch(err => alert(err.message));
+  };
 
   const handleConfirmReceipt = (orderId) => {
     confirmReceipt(orderId)
@@ -152,7 +170,14 @@ const OrderList = () => {
                     </>
                   )}
 
-                  {(order.status === 'PAID' || order.status === 'AUTOMATIC_CREATED') && trackingOrderId !== order.id && (
+                  {(order.status === 'PAID' || order.status === 'AUTOMATIC_CREATED') && (
+                    <button className="btn-outline tracking-button" onClick={() => handleMarkPacked(order.id)}>
+                      <Package size={18} /> Mark as Packed
+                    </button>
+                  )}
+
+                  {(order.status === 'PAID' || order.status === 'PACKED' || order.status === 'AUTOMATIC_CREATED')
+                    && trackingOrderId !== order.id && (
                     <button className="btn-primary tracking-button" onClick={() => setTrackingOrderId(order.id)}>
                       <Pencil size={18} /> Input Resi
                     </button>

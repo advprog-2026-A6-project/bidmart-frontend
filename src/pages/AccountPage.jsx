@@ -90,7 +90,8 @@ const AccountPage = () => {
   const primaryRole = useMemo(() => roles.find(Boolean)?.replace(/^ROLE_/, '') || roles.find(Boolean) || 'BUYER', [roles]);
 
   useEffect(() => {
-    setProfileImageBroken(false);
+    const resetImageState = window.setTimeout(() => setProfileImageBroken(false), 0);
+    return () => window.clearTimeout(resetImageState);
   }, [form.profilePictureUrl]);
 
   const handleProfileSubmit = async (event) => {

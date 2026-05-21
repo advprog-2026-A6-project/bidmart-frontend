@@ -9,7 +9,7 @@ const API_GATEWAY_BASE = (
   import.meta.env.VITE_API_GATEWAY_BASE ||
   import.meta.env.VITE_GATEWAY_URL ||
   ''
-).replace(/\/$/, '');
+).trim().replace(/\/$/, '');
 
 export class ApiError extends Error {
   constructor(message, status, payload) {

@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import { Wallet as WalletIcon, ArrowUpRight, ArrowDownLeft, Clock, CheckCircle, XCircle, ArrowRight, Landmark } from 'lucide-react';
+import { Wallet as WalletIcon, ArrowUpRight, ArrowDownLeft, ArrowRight, Landmark } from 'lucide-react';
 import { walletApi } from '../api/walletApi';
 import useAuth from '../context/useAuth';
 import './Wallet.css';
@@ -26,7 +26,7 @@ const Wallet = () => {
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   const [withdrawAmount, setWithdrawAmount] = useState('');
 
-  const fetchAllWalletData = async () => {
+  const fetchAllWalletData = useCallback(async () => {
     if (!currentUserId) return;
     try {
       setIsLoading(true);
@@ -46,13 +46,13 @@ const Wallet = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [currentUserId]);
 
   useEffect(() => {
     if (currentUserId) {
-      fetchAllWalletData();
+      Promise.resolve().then(fetchAllWalletData);
     }
-  }, [currentUserId]);
+  }, [currentUserId, fetchAllWalletData]);
 
   const handleRequestTopUp = async () => {
     if (!topUpAmount || isNaN(topUpAmount) || topUpAmount <= 0) {

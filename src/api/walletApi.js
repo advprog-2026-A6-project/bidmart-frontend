@@ -1,6 +1,6 @@
 import { getAccessToken } from '../utils/authStorage';
 
-const GATEWAY_URL = import.meta.env.VITE_API_GATEWAY_URL || '';
+const GATEWAY_URL = (import.meta.env.VITE_API_GATEWAY_URL || '').trim().replace(/\/$/, '');
 const WALLET_API_BASE = `${GATEWAY_URL}/api/wallet`;
 
 const getHeaders = (userId, useIdempotency = false) => {
@@ -62,7 +62,12 @@ export const walletApi = {
     },
 
     confirmTopUp: async (userId, amount, paymentReference) => {
-        const res = await fetch(`${WALLET_API_BASE}/topup/confirm?amount=${amount}`, {
+        const params = new URLSearchParams({ amount });
+        if (paymentReference) {
+            params.set('paymentReference', paymentReference);
+        }
+
+        const res = await fetch(`${WALLET_API_BASE}/topup/confirm?${params.toString()}`, {
             method: 'POST',
             headers: getHeaders(userId, true),
         });

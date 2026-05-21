@@ -24,6 +24,12 @@ import {
   getDisplayPrice,
   getListingStatusLabel,
 } from '../utils/catalogFormatters';
+import {
+  canManageListing,
+  getCurrentUserId,
+  getSellerDisplayName,
+  isListingOwner,
+} from '../utils/catalogPermissions';
 import '../styles/catalogPage.css';
 import './ListingDetail.css';
 
@@ -38,7 +44,9 @@ const ListingDetail = () => {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
+  const [bidStatus, setBidStatus] = useState({ hasBids: false, bidCount: 0 });
   const canCreateAuction = hasAnyAuthority(['auction:create']);
+  const currentUserId = getCurrentUserId(session, profile);
 
   const loadListing = useCallback(async () => {
     setLoading(true);
@@ -89,6 +97,35 @@ const ListingDetail = () => {
   }, [listing?.id]);
 
   useEffect(() => {
+    if (!listing?.id || !isListingOwner(session, profile, listing)) {
+      setBidStatus({ hasBids: false, bidCount: 0 });
+      return undefined;
+    }
+
+    let ignore = false;
+
+    auctionApi
+      .getListingBidStatus(listing.id)
+      .then((status) => {
+        if (!ignore) {
+          setBidStatus({
+            hasBids: Boolean(status?.hasBids),
+            bidCount: Number(status?.bidCount || 0),
+          });
+        }
+      })
+      .catch(() => {
+        if (!ignore) {
+          setBidStatus({ hasBids: false, bidCount: 0 });
+        }
+      });
+
+    return () => {
+      ignore = true;
+    };
+  }, [listing, profile, session]);
+
+  useEffect(() => {
     const timeoutId = window.setTimeout(() => {
       loadListing();
     }, 0);
@@ -103,10 +140,14 @@ const ListingDetail = () => {
     setMessage('');
 
     try {
-      await catalogApi.updateListing(listingId, {
-        description: editForm.description.trim(),
-        imageUrl: editForm.imageUrl.trim(),
-      });
+      await catalogApi.updateListing(
+        listingId,
+        {
+          description: editForm.description.trim(),
+          imageUrl: editForm.imageUrl.trim(),
+        },
+        currentUserId,
+      );
       setMessage('Listing updated successfully.');
       await loadListing();
     } catch (err) {
@@ -125,7 +166,7 @@ const ListingDetail = () => {
     setMessage('');
 
     try {
-      await catalogApi.cancelListing(listingId);
+      await catalogApi.cancelListing(listingId, currentUserId);
       setMessage('Listing cancelled successfully.');
       await loadListing();
     } catch (err) {
@@ -143,7 +184,7 @@ const ListingDetail = () => {
     setError('');
 
     try {
-      await catalogApi.deleteListing(listingId);
+      await catalogApi.deleteListing(listingId, currentUserId);
       navigate('/catalog');
     } catch (err) {
       setError(err.message || 'Failed to delete listing');
@@ -151,15 +192,15 @@ const ListingDetail = () => {
     }
   };
 
-  const canEdit = listing?.status === 'ACTIVE';
-  const canCancel = listing?.status === 'ACTIVE';
-  const sellerDisplayName = listing?.sellerName || listing?.sellerId || 'Unknown';
+  const listingIsOwned = listing ? isListingOwner(session, profile, listing) : false;
+  const canManageListingActions = listing ? canManageListing(session, profile, listing) : false;
+  const canEdit = listing?.status === 'ACTIVE' && !bidStatus.hasBids;
+  const canCancel = listing?.status === 'ACTIVE' && !bidStatus.hasBids;
+  const sellerDisplayName = getSellerDisplayName(listing);
   const categoryDisplayName = listing?.categoryName || listing?.category?.name || 'Uncategorized';
-  const currentUserId = session?.userId ?? profile?.id ?? profile?.userId;
-  const isListingOwner = currentUserId != null && String(currentUserId) === String(listing?.sellerId);
-  const canManageListing = Boolean(canCreateAuction && isListingOwner);
   const activeLinkedAuction =
     linkedAuction && ['ACTIVE', 'EXTENDED'].includes(String(linkedAuction.status));
+  const canStartAuction = canCreateAuction && canManageListingActions && !activeLinkedAuction;
 
   return (
     <>
@@ -254,10 +295,14 @@ const ListingDetail = () => {
                 </div>
 
                 <aside className="listing-detail-sidebar">
-                  {canManageListing ? (
+                  {canManageListingActions ? (
                     <div className="listing-side-card">
                       <h2>Seller Actions</h2>
-                      <p>Update media and description only while the listing has no bids.</p>
+                      <p>
+                        {bidStatus.hasBids
+                          ? `This listing already has ${bidStatus.bidCount} bid(s), so it cannot be edited or cancelled.`
+                          : 'Update media and description while the listing has no bids.'}
+                      </p>
 
                       <form className="listing-edit-form" onSubmit={handleUpdate}>
                         <label className="listing-field">
@@ -324,9 +369,13 @@ const ListingDetail = () => {
                     </div>
                   ) : (
                     <div className="listing-side-card">
-                      <h2>Buyer Options</h2>
-                      <p>Catalog items are purchased through auctions. Open the matching auction to place a bid.</p>
-                      {activeLinkedAuction ? (
+                      <h2>{listingIsOwned ? 'Your Listing' : 'Buyer Options'}</h2>
+                      <p>
+                        {listingIsOwned
+                          ? 'Sign in with the seller account that owns this listing to edit it or start an auction.'
+                          : 'Catalog items are purchased through auctions. Open the matching auction to place a bid.'}
+                      </p>
+                      {!listingIsOwned && activeLinkedAuction ? (
                         <Link
                           className="btn-primary listing-action-button"
                           to={`/auctions/${linkedAuction.id}`}
@@ -334,7 +383,7 @@ const ListingDetail = () => {
                           <ShoppingCart size={16} />
                           Place Bid
                         </Link>
-                      ) : (
+                      ) : !listingIsOwned ? (
                         <Link
                           className="btn-primary listing-action-button"
                           to={`/auctions?listingId=${listing.id}`}
@@ -342,14 +391,14 @@ const ListingDetail = () => {
                           <Gavel size={16} />
                           Find Auction
                         </Link>
-                      )}
+                      ) : null}
                     </div>
                   )}
 
-                  {canManageListing ? (
+                  {canStartAuction ? (
                     <div className="listing-side-card">
                       <h2>Start Auction</h2>
-                      <p>Use this listing ID when creating an auction in the auction module.</p>
+                      <p>Create an auction for this catalog listing. Bidding rules come from the auction service.</p>
                       <Link
                         className="btn-primary listing-action-button"
                         to={`/sell?listingId=${listing.id}`}
@@ -358,13 +407,27 @@ const ListingDetail = () => {
                         Create Auction
                       </Link>
                     </div>
+                  ) : canManageListingActions && activeLinkedAuction ? (
+                    <div className="listing-side-card">
+                      <h2>Live Auction</h2>
+                      <p>This listing already has an active auction.</p>
+                      <Link
+                        className="btn-primary listing-action-button"
+                        to={`/auctions/${linkedAuction.id}`}
+                      >
+                        <Gavel size={16} />
+                        View Auction
+                      </Link>
+                    </div>
                   ) : null}
 
                   <div className="listing-side-card listing-side-meta">
-                    <p>
-                      <Tag size={16} />
-                      Status checks use auction bid status API.
-                    </p>
+                    {listingIsOwned ? (
+                      <p>
+                        <Tag size={16} />
+                        Bid status: {bidStatus.hasBids ? `${bidStatus.bidCount} bid(s)` : 'no bids yet'}
+                      </p>
+                    ) : null}
                     <p>
                       <Shield size={16} />
                       Reserve {formatCurrency(listing.reservePrice)}
