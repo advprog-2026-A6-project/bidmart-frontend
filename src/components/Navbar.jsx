@@ -20,6 +20,7 @@ const Navbar = () => {
   const { hasAnyAuthority, isAuthenticated, logout, profile } = useAuth();
   const isLandingPage = location.pathname === '/';
   const canManageAdmin = hasAnyAuthority(['rbac:manage', 'user:deactivate']);
+  const canCreateAuction = hasAnyAuthority(['auction:create']);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -89,12 +90,16 @@ const Navbar = () => {
                       <ShieldCheck size={18} /> Admin Auth
                     </Link>
                   ) : null}
-                  <Link to="/catalog/new" className="btn-ghost navbar-inline-icon">
-                    <Plus size={18} /> Add Listing
-                  </Link>
-                  <Link to="/sell" className="btn-primary navbar-inline-icon">
-                    <Plus size={18} /> Add Auction
-                  </Link>
+                  {canCreateAuction ? (
+                    <>
+                      <Link to="/catalog/new" className="btn-ghost navbar-inline-icon">
+                        <Plus size={18} /> Add Listing
+                      </Link>
+                      <Link to="/sell" className="btn-primary navbar-inline-icon">
+                        <Plus size={18} /> Add Auction
+                      </Link>
+                    </>
+                  ) : null}
                   <button type="button" className="btn-ghost navbar-logout navbar-inline-icon" onClick={handleLogout}>
                     <LogOut size={18} /> Logout
                   </button>

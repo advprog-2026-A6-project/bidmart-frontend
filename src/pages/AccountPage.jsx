@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   CheckCircle2,
-  KeySquare,
   MonitorSmartphone,
   RefreshCw,
   Shield,
@@ -51,6 +50,7 @@ const AccountPage = () => {
   const [totpCode, setTotpCode] = useState('');
   const [statusMessage, setStatusMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+  const [profileImageBroken, setProfileImageBroken] = useState(false);
 
   const canManageRbac = hasAnyAuthority(['rbac:manage', 'user:deactivate']);
 
@@ -86,7 +86,12 @@ const AccountPage = () => {
     bootstrap();
   }, [getActiveSessions, refreshProfile]);
 
-  const permissions = useMemo(() => session?.authorities || [], [session?.authorities]);
+  const roles = useMemo(() => session?.roles || [], [session?.roles]);
+  const primaryRole = useMemo(() => roles.find(Boolean)?.replace(/^ROLE_/, '') || roles.find(Boolean) || 'BUYER', [roles]);
+
+  useEffect(() => {
+    setProfileImageBroken(false);
+  }, [form.profilePictureUrl]);
 
   const handleProfileSubmit = async (event) => {
     event.preventDefault();
@@ -106,6 +111,7 @@ const AccountPage = () => {
         emailNotificationsEnabled: Boolean(nextProfile?.emailNotificationsEnabled),
         pushNotificationsEnabled: Boolean(nextProfile?.pushNotificationsEnabled),
       });
+      setProfileImageBroken(false);
       setStatusMessage('Profil berhasil diperbarui.');
     } catch (error) {
       setErrorMessage(error.message);
@@ -148,7 +154,7 @@ const AccountPage = () => {
 
     try {
       await enableEmailTwoFactor();
-      setStatusMessage('2FA email berhasil diaktifkan.');
+      setStatusMessage('2FA email berhasil diaktifkan. Kode verifikasi akan dikirim ke email saat Anda login berikutnya.');
       setQrCodeUri('');
     } catch (error) {
       setErrorMessage(error.message);
@@ -203,8 +209,8 @@ const AccountPage = () => {
       <section className="container account-page">
         <header className="page-header">
           <div>
-            <h1>Account Settings</h1>
-            <p>Semua fitur backend Auth sekarang dipetakan ke halaman ini: profil, 2FA, daftar sesi, dan ringkasan permission.</p>
+            <h1>Pengaturan akun</h1>
+            <p>Kelola profil, keamanan akun, dan sesi perangkat aktif Anda.</p>
           </div>
           {canManageRbac ? (
             <Link to="/admin/auth" className="account-admin-link">
@@ -234,6 +240,30 @@ const AccountPage = () => {
                 </div>
                 <form className="profile-form" onSubmit={handleProfileSubmit}>
                   <div className="profile-grid">
+                    <div className="field-span-2 profile-preview-card">
+                      {form.profilePictureUrl && !profileImageBroken ? (
+                        <img
+                          src={form.profilePictureUrl}
+                          alt={`Foto profil ${form.name || profile?.name || 'pengguna'}`}
+                          className="profile-preview-image"
+                          onError={() => setProfileImageBroken(true)}
+                        />
+                      ) : (
+                        <div className="profile-preview-placeholder">
+                          <UserCircle2 size={44} />
+                          <span>Preview foto profil</span>
+                        </div>
+                      )}
+                      {form.profilePictureUrl ? (
+                        <p className="field-help">
+                          {profileImageBroken
+                            ? 'URL ini tidak bisa ditampilkan langsung. Coba gunakan direct image URL yang berakhir dengan .jpg, .png, atau .webp.'
+                            : 'Preview ini akan ikut tersimpan sebagai foto profil akun Anda.'}
+                        </p>
+                      ) : (
+                        <p className="field-help">Masukkan URL gambar publik untuk menampilkan preview foto profil Anda.</p>
+                      )}
+                    </div>
                     <label className="field-label">
                       <span>Nama</span>
                       <input
@@ -312,7 +342,7 @@ const AccountPage = () => {
                   <div className="section-icon"><Shield size={18} /></div>
                   <div>
                     <h2>Multi-factor authentication</h2>
-                    <p>Aktifkan TOTP atau kode email, lalu kelola metode yang saat ini dipakai akun Anda.</p>
+                    <p>Aktifkan autentikasi tambahan lewat aplikasi authenticator atau kode email.</p>
                   </div>
                 </div>
                 <div className="security-overview">
@@ -345,6 +375,9 @@ const AccountPage = () => {
                     Nonaktifkan 2FA
                   </button>
                 </div>
+                <p className="field-help security-help">
+                  2FA email tidak menampilkan QR. Setelah diaktifkan, kode OTP akan dikirim ke email Anda saat login berikutnya.
+                </p>
                 {qrCodeUri ? (
                   <div className="totp-setup-panel">
                     <div className="totp-qr">
@@ -417,7 +450,7 @@ const AccountPage = () => {
                   <div className="section-icon"><CheckCircle2 size={18} /></div>
                   <div>
                     <h2>Ringkasan akun</h2>
-                    <p>Snapshot sesi yang saat ini tervalidasi oleh backend Auth.</p>
+                    <p>Informasi utama akun yang sedang aktif.</p>
                   </div>
                 </div>
                 <dl className="summary-list">
@@ -434,25 +467,14 @@ const AccountPage = () => {
                     <dd>{profile?.name || '-'}</dd>
                   </div>
                   <div>
+                    <dt>Peran akun</dt>
+                    <dd>{primaryRole}</dd>
+                  </div>
+                  <div>
                     <dt>Contact method</dt>
                     <dd>{profile?.preferredContactMethod || '-'}</dd>
                   </div>
                 </dl>
-              </section>
-
-              <section className="surface-card">
-                <div className="section-heading">
-                  <div className="section-icon"><KeySquare size={18} /></div>
-                  <div>
-                    <h2>Permission saat ini</h2>
-                    <p>Authority yang dikirim backend lewat pipeline verifikasi token dan permission.</p>
-                  </div>
-                </div>
-                <div className="permission-chip-list">
-                  {permissions.length > 0 ? permissions.map((permission) => (
-                    <span key={permission} className="permission-chip">{permission}</span>
-                  )) : <p className="empty-inline">Belum ada authority yang terbaca.</p>}
-                </div>
               </section>
             </aside>
           </div>
