@@ -1,6 +1,10 @@
 import { apiFetch } from './apiClient';
 
-const CATALOG_API_BASE = import.meta.env.VITE_CATALOG_API_BASE || '';
+const CATALOG_API_BASE = (
+  import.meta.env.VITE_CATALOG_API_BASE ||
+  import.meta.env.VITE_CATALOG_SERVICE_URL ||
+  ''
+).replace(/\/$/, '');
 
 const request = (path, options = {}) => apiFetch(`${CATALOG_API_BASE}${path}`, options);
 
@@ -25,11 +29,12 @@ export const catalogApi = {
   listListings: () => request('/listings'),
   searchListings: (filters) => request(`/listings/search${buildSearchQuery(filters)}`),
   getListing: (listingId) => request(`/listings/${listingId}`),
-  createListing: (payload) =>
+  createListing: (payload, sellerId) =>
     request('/listings', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        ...(sellerId ? { 'X-User-Id': String(sellerId) } : {}),
       },
       body: JSON.stringify(payload),
     }),
