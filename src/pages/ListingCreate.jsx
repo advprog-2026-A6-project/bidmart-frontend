@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { catalogApi } from '../api/catalogApi';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import useAuth from '../context/useAuth';
 import { flattenCategoryTree, toApiDateTime } from '../utils/catalogFormatters';
 import '../styles/catalogPage.css';
 import './ListingCreate.css';
@@ -22,6 +23,7 @@ const initialForm = {
 
 const ListingCreate = () => {
   const navigate = useNavigate();
+  const { profile, session } = useAuth();
   const [form, setForm] = useState(initialForm);
   const [categories, setCategories] = useState([]);
   const [submitting, setSubmitting] = useState(false);
@@ -49,6 +51,12 @@ const ListingCreate = () => {
     setError('');
 
     try {
+      const sellerId = session?.userId ?? profile?.id ?? profile?.userId;
+
+      if (!sellerId) {
+        throw new Error('Seller id tidak ditemukan dari sesi auth. Silakan login ulang.');
+      }
+
       const payload = {
         title: form.title.trim(),
         description: form.description.trim(),
@@ -61,7 +69,7 @@ const ListingCreate = () => {
         endTime: toApiDateTime(form.endTime),
       };
 
-      const createdListing = await catalogApi.createListing(payload);
+      const createdListing = await catalogApi.createListing(payload, sellerId);
       navigate(`/catalog/${createdListing.id}`);
     } catch (err) {
       setError(err.message || 'Failed to create listing');

@@ -120,6 +120,8 @@ const ListingDetail = () => {
 
   const canEdit = listing?.status === 'ACTIVE';
   const canCancel = listing?.status === 'ACTIVE';
+  const sellerDisplayName = listing?.sellerName || listing?.sellerId || 'Unknown';
+  const categoryDisplayName = listing?.categoryName || listing?.category?.name || 'Uncategorized';
 
   return (
     <>
@@ -188,11 +190,11 @@ const ListingDetail = () => {
                       </div>
                       <div>
                         <span>Category</span>
-                        <strong>{listing.category?.name || 'Uncategorized'}</strong>
+                        <strong>{categoryDisplayName}</strong>
                       </div>
                       <div>
                         <span>Seller</span>
-                        <strong>{listing.sellerId || 'Unknown'}</strong>
+                        <strong>{sellerDisplayName}</strong>
                       </div>
                       <div>
                         <span>Listing ID</span>
@@ -307,8 +309,14 @@ const ListingDetail = () => {
                     </p>
                     <p>
                       <User size={16} />
-                      Seller {listing.sellerId}
+                      Seller {sellerDisplayName}
                     </p>
+                    {listing.sellerBio ? (
+                      <p>
+                        <User size={16} />
+                        {listing.sellerBio}
+                      </p>
+                    ) : null}
                   </div>
                 </aside>
               </div>
