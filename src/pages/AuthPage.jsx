@@ -15,7 +15,7 @@ const modeLabels = {
   register: {
     eyebrow: 'Buat akun baru',
     title: 'Registrasi pengguna',
-    description: 'Akun baru langsung masuk ke alur verifikasi email dan siap dipakai untuk flow buyer default.',
+    description: 'Pilih peran awal buyer atau seller, lalu lanjutkan ke alur verifikasi email sebelum akun dipakai penuh.',
     icon: UserPlus,
   },
   verify: {
@@ -50,6 +50,7 @@ const AuthPage = () => {
   const [registerForm, setRegisterForm] = useState({
     name: '',
     email: '',
+    role: 'BUYER',
     password: '',
     confirmPassword: '',
   });
@@ -129,6 +130,7 @@ const AuthPage = () => {
       const response = await register({
         name: registerForm.name,
         email: registerForm.email,
+        role: registerForm.role,
         password: registerForm.password,
       });
       setStatusMessage(response?.message || 'Registrasi berhasil.');
@@ -298,7 +300,7 @@ const AuthPage = () => {
                   <UserPlus size={20} />
                   <div>
                     <h2>Register pengguna baru</h2>
-                    <p>Setelah berhasil, akun buyer default akan dibuat dan menunggu verifikasi email.</p>
+                    <p>Pilih peran awal BUYER atau SELLER, lalu verifikasi email untuk mengaktifkan akun.</p>
                   </div>
                 </div>
                 <div className="auth-grid">
@@ -320,6 +322,16 @@ const AuthPage = () => {
                       placeholder="you@example.com"
                       required
                     />
+                  </label>
+                  <label className="field-label">
+                    <span>Peran awal</span>
+                    <select
+                      value={registerForm.role}
+                      onChange={(event) => setRegisterForm((current) => ({ ...current, role: event.target.value }))}
+                    >
+                      <option value="BUYER">BUYER</option>
+                      <option value="SELLER">SELLER</option>
+                    </select>
                   </label>
                   <label className="field-label">
                     <span>Password</span>
