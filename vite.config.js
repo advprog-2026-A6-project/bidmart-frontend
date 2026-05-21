@@ -8,7 +8,11 @@ export default defineConfig(({ mode }) => {
   const defaultGatewayTarget = gatewayTarget || 'http://localhost:8080';
   const authTarget = gatewayTarget || env.VITE_AUTH_SERVICE_URL || 'http://localhost:8080';
   const catalogTarget = gatewayTarget || env.VITE_CATALOG_SERVICE_URL || 'http://localhost:8080';
-  const notificationTarget = gatewayTarget || env.VITE_NOTIFICATION_SERVICE_URL || 'http://localhost:8080';
+  const notificationTarget =
+    gatewayTarget ||
+    env.VITE_ORDER_NOTIFICATION_SERVICE_URL ||
+    env.VITE_NOTIFICATION_SERVICE_URL ||
+    'http://localhost:8080';
 
   return {
     plugins: [react()],

@@ -1,5 +1,14 @@
 import { useEffect, useState } from 'react';
-import { Gavel, LogOut, Plus, Search, Settings, ShieldCheck, Wallet } from 'lucide-react';
+import {
+  Bell,
+  Gavel,
+  LogOut,
+  Plus,
+  Search,
+  Settings,
+  ShieldCheck,
+  Wallet,
+} from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import useAuth from '../context/useAuth';
 import './Navbar.css';
@@ -43,7 +52,7 @@ const Navbar = () => {
           />
         </div>
 
-        <div className="navbar-actions" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+        <div className="navbar-actions">
           {isLandingPage ? (
             <>
               {isAuthenticated ? (
@@ -60,13 +69,17 @@ const Navbar = () => {
             </>
           ) : (
             <>
-              <Link to="/catalog" className="btn-ghost">Catalog</Link>
-              <Link to="/auctions" className="btn-ghost">Auctions</Link>
               {isAuthenticated ? (
                 <>
                   <Link to="/dashboard" className="btn-ghost">Dashboard</Link>
+                  <Link to="/catalog" className="btn-ghost">Catalog</Link>
+                  <Link to="/auctions" className="btn-ghost">Auctions</Link>
+                  <Link to="/orders" className="btn-ghost">Orders</Link>
                   <Link to="/wallet" className="btn-ghost navbar-inline-icon">
                     <Wallet size={18} /> Wallet
+                  </Link>
+                  <Link to="/notifications" className="btn-ghost navbar-inline-icon">
+                    <Bell size={18} /> Notifications
                   </Link>
                   <Link to="/account" className="btn-ghost navbar-inline-icon">
                     <Settings size={18} /> {profile?.name || 'Account'}
@@ -88,6 +101,8 @@ const Navbar = () => {
                 </>
               ) : (
                 <>
+                  <Link to="/catalog" className="btn-ghost">Catalog</Link>
+                  <Link to="/auctions" className="btn-ghost">Auctions</Link>
                   <Link to="/auth?mode=login" className="btn-ghost">Login</Link>
                   <Link to="/auth?mode=register" className="btn-primary">Register</Link>
                 </>
