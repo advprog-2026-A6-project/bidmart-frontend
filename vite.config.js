@@ -5,14 +5,14 @@ import react from '@vitejs/plugin-react'
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, '.', '');
   const gatewayTarget = env.VITE_API_GATEWAY_BASE || env.VITE_GATEWAY_URL;
-  const defaultGatewayTarget = gatewayTarget || 'http://localhost:8080';
+  const defaultGatewayTarget = gatewayTarget || 'http://18.210.98.9:8080';
   const authTarget = defaultGatewayTarget;
-  const catalogTarget = gatewayTarget || env.VITE_CATALOG_SERVICE_URL || 'http://localhost:8080';
+  const catalogTarget = gatewayTarget || env.VITE_CATALOG_SERVICE_URL || 'http://18.210.98.9:8080';
   const notificationTarget =
     gatewayTarget ||
     env.VITE_ORDER_NOTIFICATION_SERVICE_URL ||
     env.VITE_NOTIFICATION_SERVICE_URL ||
-    'http://localhost:8080';
+    'http://18.210.98.9:8080';
 
   return {
     plugins: [react()],
