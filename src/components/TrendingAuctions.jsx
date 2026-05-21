@@ -2,12 +2,19 @@ import { useEffect, useState } from 'react';
 import { Clock, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { auctionApi } from '../api/auctionApi';
+import { catalogApi } from '../api/catalogApi';
 import {
   formatCurrency,
   getCurrentPrice,
   getStatusLabel,
   getTimeLeft,
 } from '../utils/auctionFormatters';
+import {
+  getAuctionImageUrl,
+  getAuctionSellerName,
+  getAuctionTitle,
+  hydrateAuctionsWithListings,
+} from '../utils/auctionListing';
 import './TrendingAuctions.css';
 
 import item1 from '../assets/auction_item_1.png';
@@ -25,8 +32,9 @@ const TrendingAuctions = () => {
     const loadTrendingAuctions = async () => {
       try {
         const data = await auctionApi.listAuctions();
+        const hydratedAuctions = await hydrateAuctionsWithListings(data, catalogApi.getListing);
         setAuctions(
-          (Array.isArray(data) ? data : [])
+          hydratedAuctions
             .filter((auction) => auction.status === 'ACTIVE' || auction.status === 'EXTENDED')
             .slice(0, 3)
         );
@@ -71,15 +79,17 @@ const TrendingAuctions = () => {
               <Link key={auction.id} to={`/auctions/${auction.id}`} className="auction-card">
                 <div
                   className="card-image"
-                  style={{ backgroundImage: `url(${cardImages[index % cardImages.length]})` }}
+                  style={{
+                    backgroundImage: `url(${getAuctionImageUrl(auction) || cardImages[index % cardImages.length]})`,
+                  }}
                 >
                   <div className="live-badge">
                     <div className="dot"></div> {getStatusLabel(auction.status)}
                   </div>
                 </div>
                 <div className="card-content">
-                  <h3 className="item-title">{auction.title}</h3>
-                  <p className="item-creator">by {auction.sellerId || 'System seller'}</p>
+                  <h3 className="item-title">{getAuctionTitle(auction)}</h3>
+                  <p className="item-creator">by {getAuctionSellerName(auction)}</p>
 
                   <div className="card-footer">
                     <div className="current-bid">

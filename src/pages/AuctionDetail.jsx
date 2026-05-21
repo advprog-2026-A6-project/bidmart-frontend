@@ -11,6 +11,7 @@ import {
   Watch,
 } from 'lucide-react';
 import { auctionApi } from '../api/auctionApi';
+import { catalogApi } from '../api/catalogApi';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import useAuth from '../context/useAuth';
@@ -22,6 +23,15 @@ import {
   getStatusLabel,
   getTimeLeft,
 } from '../utils/auctionFormatters';
+import {
+  getAuctionCategoryName,
+  getAuctionDescription,
+  getAuctionImageUrl,
+  getAuctionListingId,
+  getAuctionSellerName,
+  getAuctionTitle,
+  hydrateAuctionsWithListings,
+} from '../utils/auctionListing';
 import './AuctionDetail.css';
 
 const resolveBidderName = (profile, session) =>
@@ -53,11 +63,16 @@ const AuctionDetail = () => {
       auctionApi.getAuction(auctionId),
       auctionApi.listBids(auctionId),
     ])
-      .then(([auctionData, bidData]) => {
+      .then(async ([auctionData, bidData]) => {
+        const [hydratedAuction] = await hydrateAuctionsWithListings(
+          [auctionData],
+          catalogApi.getListing,
+        );
+
         if (!ignore) {
-          setAuction(auctionData);
+          setAuction(hydratedAuction);
           setBids(Array.isArray(bidData) ? bidData : []);
-          setBidAmount(String(getMinimumBid(auctionData)));
+          setBidAmount(String(getMinimumBid(hydratedAuction)));
         }
       })
       .catch((err) => {
@@ -81,10 +96,14 @@ const AuctionDetail = () => {
       auctionApi.getAuction(auctionId),
       auctionApi.listBids(auctionId),
     ]);
+    const [hydratedAuction] = await hydrateAuctionsWithListings(
+      [auctionData],
+      catalogApi.getListing,
+    );
 
-    setAuction(auctionData);
+    setAuction(hydratedAuction);
     setBids(Array.isArray(bidData) ? bidData : []);
-    setBidAmount(String(getMinimumBid(auctionData)));
+    setBidAmount(String(getMinimumBid(hydratedAuction)));
     setActionMessage(message);
   };
 
@@ -177,17 +196,21 @@ const AuctionDetail = () => {
                   <span className="auction-detail-badge-dot"></span>
                   {getStatusLabel(auction.status)}
                 </span>
-                <h1>{auction.title}</h1>
-                <p>by {auction.sellerId || 'System seller'}</p>
+                <h1>{getAuctionTitle(auction)}</h1>
+                <p>by {getAuctionSellerName(auction)}</p>
               </div>
 
               <div className="auction-detail-layout">
                 <div className="auction-detail-left">
                   <div className="auction-detail-image-card">
-                    <div className="auction-detail-image-placeholder">
-                      <Watch size={64} strokeWidth={1.5} />
-                      <span>{auction.listingId || 'Auction Item'}</span>
-                    </div>
+                    {getAuctionImageUrl(auction) ? (
+                      <img src={getAuctionImageUrl(auction)} alt={getAuctionTitle(auction)} />
+                    ) : (
+                      <div className="auction-detail-image-placeholder">
+                        <Watch size={64} strokeWidth={1.5} />
+                        <span>{getAuctionListingId(auction) || 'Auction Item'}</span>
+                      </div>
+                    )}
                   </div>
 
                   <div className="auction-info-card">
@@ -196,7 +219,7 @@ const AuctionDetail = () => {
                       <h2>Auction Information</h2>
                     </div>
                     <p className="auction-description">
-                      {auction.description || 'No description provided.'}
+                      {getAuctionDescription(auction) || 'No description provided.'}
                     </p>
 
                     <div className="auction-info-grid">
@@ -218,7 +241,11 @@ const AuctionDetail = () => {
                       </div>
                       <div>
                         <span>Listing ID</span>
-                        <strong>{auction.listingId || '-'}</strong>
+                        <strong>{getAuctionListingId(auction) || '-'}</strong>
+                      </div>
+                      <div>
+                        <span>Category</span>
+                        <strong>{getAuctionCategoryName(auction)}</strong>
                       </div>
                       <div>
                         <span>Winner</span>
