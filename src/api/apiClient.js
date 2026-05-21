@@ -5,7 +5,11 @@ import {
   setStoredTokens,
 } from '../utils/authStorage';
 
-const AUTH_API_BASE = import.meta.env.VITE_AUTH_API_BASE || '';
+const API_GATEWAY_BASE = (
+  import.meta.env.VITE_API_GATEWAY_BASE ||
+  import.meta.env.VITE_GATEWAY_URL ||
+  ''
+).replace(/\/$/, '');
 
 export class ApiError extends Error {
   constructor(message, status, payload) {
@@ -53,7 +57,7 @@ const refreshAccessToken = async () => {
   }
 
   if (!refreshPromise) {
-    refreshPromise = fetch(`${AUTH_API_BASE}/api/auth/refresh`, {
+    refreshPromise = fetch(`${API_GATEWAY_BASE}/api/auth/refresh`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

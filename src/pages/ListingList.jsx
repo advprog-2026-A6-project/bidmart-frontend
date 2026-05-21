@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { catalogApi } from '../api/catalogApi';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import useAuth from '../context/useAuth';
 import {
   flattenCategoryTree,
   formatCurrency,
@@ -23,11 +24,13 @@ const initialFilters = {
 };
 
 const ListingList = () => {
+  const { hasAnyAuthority } = useAuth();
   const [listings, setListings] = useState([]);
   const [categories, setCategories] = useState([]);
   const [filters, setFilters] = useState(initialFilters);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const canCreateAuction = hasAnyAuthority(['auction:create']);
 
   const categoryOptions = useMemo(
     () => flattenCategoryTree(categories),
@@ -109,10 +112,12 @@ const ListingList = () => {
                 <RefreshCw size={18} />
                 Refresh
               </button>
-              <Link className="btn-primary" to="/catalog/new">
-                <Plus size={18} />
-                Create Listing
-              </Link>
+              {canCreateAuction ? (
+                <Link className="btn-primary" to="/catalog/new">
+                  <Plus size={18} />
+                  Create Listing
+                </Link>
+              ) : null}
             </div>
           </div>
 
@@ -202,10 +207,12 @@ const ListingList = () => {
               <Package size={34} />
               <h2>No listings found</h2>
               <p>Create a listing or adjust your search filters.</p>
-              <Link className="btn-primary" to="/catalog/new">
-                <Plus size={18} />
-                Create Listing
-              </Link>
+              {canCreateAuction ? (
+                <Link className="btn-primary" to="/catalog/new">
+                  <Plus size={18} />
+                  Create Listing
+                </Link>
+              ) : null}
             </div>
           )}
 

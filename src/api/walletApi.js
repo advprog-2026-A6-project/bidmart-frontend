@@ -1,14 +1,22 @@
-import { apiFetch } from './apiClient';
+import { getAccessToken } from '../utils/authStorage';
 
 const GATEWAY_URL = import.meta.env.VITE_API_GATEWAY_URL || '';
 const WALLET_API_BASE = `${GATEWAY_URL}/api/wallet`;
 
 const getHeaders = (userId, useIdempotency = false) => {
-    const headers = {};
+    const headers = {
+        'Content-Type': 'application/json',
+    };
 
     if (userId != null) {
         headers['X-User-Id'] = userId.toString();
     }
+
+    const token = getAccessToken();
+    if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+    }
+
 
     if (useIdempotency) {
         headers['X-Idempotency-Key'] = crypto.randomUUID();
@@ -17,49 +25,79 @@ const getHeaders = (userId, useIdempotency = false) => {
     return headers;
 };
 
+const parseResponse = async (response) => {
+    const contentType = response.headers.get('content-type') || '';
+    const payload = contentType.includes('application/json')
+        ? await response.json()
+        : await response.text();
+
+    if (!response.ok) {
+        throw new Error(payload?.message || payload?.error || (typeof payload === 'string' ? payload : 'Transaksi gagal'));
+    }
+    return payload;
+};
+
 export const walletApi = {
-    getWallet: (userId) => 
-        apiFetch(`${WALLET_API_BASE}`, { headers: getHeaders(userId) }),
+    getWallet: async (userId) => {
+        const res = await fetch(`${WALLET_API_BASE}`, { headers: getHeaders(userId) });
+        return parseResponse(res);
+    },
 
-    getBankAccount: (userId) => 
-        apiFetch(`${WALLET_API_BASE}/bank-account`, { headers: getHeaders(userId) }),
+    getBankAccount: async (userId) => {
+        const res = await fetch(`${WALLET_API_BASE}/bank-account`, { headers: getHeaders(userId) });
+        return parseResponse(res);
+    },
 
-    getHistory: (userId) => 
-        apiFetch(`${WALLET_API_BASE}/history`, { headers: getHeaders(userId) }),
+    getHistory: async (userId) => {
+        const res = await fetch(`${WALLET_API_BASE}/history`, { headers: getHeaders(userId) });
+        return parseResponse(res);
+    },
 
-    initiateTopUp: (userId, amount) => 
-        apiFetch(`${WALLET_API_BASE}/topup/initiate?amount=${amount}`, {
+    initiateTopUp: async (userId, amount) => {
+        const res = await fetch(`${WALLET_API_BASE}/topup/initiate?amount=${amount}`, {
             method: 'POST',
             headers: getHeaders(userId),
-        }),
+        });
+        return parseResponse(res);
+    },
 
-    confirmTopUp: (userId, amount, paymentReference) => 
-        apiFetch(`${WALLET_API_BASE}/topup/confirm?amount=${amount}`, {
+    confirmTopUp: async (userId, amount, paymentReference) => {
+        const res = await fetch(`${WALLET_API_BASE}/topup/confirm?amount=${amount}`, {
             method: 'POST',
             headers: getHeaders(userId, true),
-        }),
+        });
+        return parseResponse(res);
+    },
 
-    withdraw: (userId, amount) => 
-        apiFetch(`${WALLET_API_BASE}/withdraw?amount=${amount}`, {
+    withdraw: async (userId, amount) => {
+        const res = await fetch(`${WALLET_API_BASE}/withdraw?amount=${amount}`, {
             method: 'POST',
             headers: getHeaders(userId, true),
-        }),
+        });
+        return parseResponse(res);
+    },
 
-    holdBalance: (userId, amount) => 
-        apiFetch(`${WALLET_API_BASE}/hold?userId=${userId}&amount=${amount}`, {
+    holdBalance: async (userId, amount) => {
+        const res = await fetch(`${WALLET_API_BASE}/hold?userId=${userId}&amount=${amount}`, {
             method: 'POST',
             headers: getHeaders(userId, true),
-        }),
+        });
+        return parseResponse(res);
+    },
 
-    releaseBalance: (userId, amount) => 
-        apiFetch(`${WALLET_API_BASE}/release?userId=${userId}&amount=${amount}`, {
+    releaseBalance: async (userId, amount) => {
+        const res = await fetch(`${WALLET_API_BASE}/release?userId=${userId}&amount=${amount}`, {
             method: 'POST',
             headers: getHeaders(userId, true),
-        }),
+        });
+        return parseResponse(res);
+    },
 
-    settlePayment: (buyerId, sellerId, amount) => 
-        apiFetch(`${WALLET_API_BASE}/settle?buyerId=${buyerId}&sellerId=${sellerId}&amount=${amount}`, {
+    settlePayment: async (buyerId, sellerId, amount) => {
+        const res = await fetch(`${WALLET_API_BASE}/settle?buyerId=${buyerId}&sellerId=${sellerId}&amount=${amount}`, {
             method: 'POST',
             headers: getHeaders(buyerId, true),
-        }),
-};
+        });
+        return parseResponse(res);
+    },
+};

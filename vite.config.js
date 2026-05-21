@@ -6,7 +6,7 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, '.', '');
   const gatewayTarget = env.VITE_API_GATEWAY_BASE || env.VITE_GATEWAY_URL;
   const defaultGatewayTarget = gatewayTarget || 'http://localhost:8080';
-  const authTarget = gatewayTarget || env.VITE_AUTH_SERVICE_URL || 'http://localhost:8080';
+  const authTarget = defaultGatewayTarget;
   const catalogTarget = gatewayTarget || env.VITE_CATALOG_SERVICE_URL || 'http://localhost:8080';
   const notificationTarget =
     gatewayTarget ||

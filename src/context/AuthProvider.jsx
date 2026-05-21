@@ -52,6 +52,11 @@ const normalizeAuthorities = (authorities = []) =>
     })
     .filter(Boolean);
 
+const normalizeStrings = (values = []) =>
+  values
+    .map((value) => (typeof value === 'string' ? value : ''))
+    .filter(Boolean);
+
 const normalizeProfile = (nextProfile) => {
   if (!nextProfile) {
     return null;
@@ -96,6 +101,8 @@ export const AuthProvider = ({ children }) => {
         userId: validation.userId,
         email: validation.email,
         authorities: normalizeAuthorities(validation.authorities),
+        roles: normalizeStrings(validation.roles),
+        permissions: normalizeStrings(validation.permissions),
       };
 
       setSession(nextSession);

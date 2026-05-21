@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { auctionApi } from '../api/auctionApi';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import useAuth from '../context/useAuth';
 import {
   formatCurrency,
   getCurrentPrice,
@@ -15,11 +16,13 @@ import './AuctionList.css';
 const statusOptions = ['ALL', 'ACTIVE', 'DRAFT', 'EXTENDED', 'WON', 'UNSOLD', 'CLOSED'];
 
 const AuctionList = () => {
+  const { hasAnyAuthority } = useAuth();
   const [auctions, setAuctions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [query, setQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
+  const canCreateAuction = hasAnyAuthority(['auction:create']);
 
   const loadAuctions = async () => {
     setLoading(true);
@@ -97,10 +100,12 @@ const AuctionList = () => {
                 <RefreshCw size={18} />
                 Refresh
               </button>
-              <Link className="btn-primary auction-create-link" to="/sell">
-                <Plus size={18} />
-                Add Auction
-              </Link>
+              {canCreateAuction ? (
+                <Link className="btn-primary auction-create-link" to="/sell">
+                  <Plus size={18} />
+                  Add Auction
+                </Link>
+              ) : null}
             </div>
           </div>
 
@@ -146,10 +151,12 @@ const AuctionList = () => {
               <Gavel size={34} />
               <h2>No auctions found</h2>
               <p>Create a new auction or adjust the filters.</p>
-              <Link className="btn-primary auction-create-link" to="/sell">
-                <Plus size={18} />
-                Add Auction
-              </Link>
+              {canCreateAuction ? (
+                <Link className="btn-primary auction-create-link" to="/sell">
+                  <Plus size={18} />
+                  Add Auction
+                </Link>
+              ) : null}
             </div>
           )}
 
