@@ -9,19 +9,19 @@ const modeLabels = {
   login: {
     eyebrow: 'Masuk ke akun',
     title: 'Autentikasi BidMart',
-    description: 'Gunakan akun yang sudah terverifikasi untuk masuk, lalu frontend akan mengelola access token dan refresh token secara otomatis.',
+    description: 'Masuk dengan email yang sudah terverifikasi untuk melanjutkan aktivitas akun Anda.',
     icon: KeyRound,
   },
   register: {
     eyebrow: 'Buat akun baru',
     title: 'Registrasi pengguna',
-    description: 'Pilih peran awal buyer atau seller, lalu lanjutkan ke alur verifikasi email sebelum akun dipakai penuh.',
+    description: 'Buat akun baru sebagai buyer atau seller, lalu verifikasi email untuk mengaktifkannya.',
     icon: UserPlus,
   },
   verify: {
     eyebrow: 'Verifikasi email',
     title: 'Aktifkan akun Anda',
-    description: 'Masukkan token verifikasi dari email atau dari log backend saat mode email masih LOGGING.',
+    description: 'Masukkan token verifikasi yang dikirim ke email Anda untuk mengaktifkan akun.',
     icon: MailCheck,
   },
 };
@@ -206,10 +206,10 @@ const AuthPage = () => {
               <h1>{modeLabels[activeMode].title}</h1>
               <p>{modeLabels[activeMode].description}</p>
               <ul className="auth-feature-list">
-                <li>Register dan verifikasi email</li>
-                <li>Login dengan access token dan refresh token</li>
-                <li>2FA TOTP maupun kode email</li>
-                <li>Manajemen profil, sesi aktif, dan RBAC admin</li>
+                <li>Buat akun dan aktifkan lewat email verifikasi</li>
+                <li>Masuk dengan perlindungan 2FA saat dibutuhkan</li>
+                <li>Kelola profil, kontak, dan sesi perangkat</li>
+                <li>Akses fitur akun dan keamanan dari satu tempat</li>
               </ul>
               <div className="auth-switches">
                 <button type="button" className={activeMode === 'login' ? 'active' : ''} onClick={() => setMode('login')}>
@@ -364,12 +364,12 @@ const AuthPage = () => {
               <div className="auth-stack">
                 <form className="auth-card" onSubmit={handleVerifyEmail}>
                   <div className="auth-card-heading">
-                    <MailCheck size={20} />
-                    <div>
-                      <h2>Verifikasi email</h2>
-                      <p>Masukkan token verifikasi untuk mengaktifkan akun dan membuka flow login penuh.</p>
-                    </div>
+                  <MailCheck size={20} />
+                  <div>
+                    <h2>Verifikasi email</h2>
+                    <p>Masukkan token verifikasi untuk mengaktifkan akun Anda.</p>
                   </div>
+                </div>
                   <label className="field-label">
                     <span>Token verifikasi</span>
                     <input
@@ -411,8 +411,8 @@ const AuthPage = () => {
 
             <div className="auth-hints">
               <p>
-                Setelah login, kamu bisa langsung lanjut ke halaman <Link to="/account">Account</Link> untuk uji profile,
-                2FA, dan session revoke.
+                Setelah berhasil masuk, lanjutkan ke halaman <Link to="/account">Akun</Link> untuk mengelola profil,
+                keamanan, dan sesi perangkat Anda.
               </p>
             </div>
           </div>

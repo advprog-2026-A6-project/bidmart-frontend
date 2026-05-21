@@ -15,6 +15,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { catalogApi } from '../api/catalogApi';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import useAuth from '../context/useAuth';
 import {
   formatCurrency,
   formatDateTime,
@@ -25,6 +26,7 @@ import '../styles/catalogPage.css';
 import './ListingDetail.css';
 
 const ListingDetail = () => {
+  const { hasAnyAuthority } = useAuth();
   const { listingId } = useParams();
   const navigate = useNavigate();
   const [listing, setListing] = useState(null);
@@ -33,6 +35,7 @@ const ListingDetail = () => {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
+  const canCreateAuction = hasAnyAuthority(['auction:create']);
 
   const loadListing = useCallback(async () => {
     setLoading(true);
@@ -279,17 +282,19 @@ const ListingDetail = () => {
                     </button>
                   </div>
 
-                  <div className="listing-side-card">
-                    <h2>Start Auction</h2>
-                    <p>Use this listing ID when creating an auction in the auction module.</p>
-                    <Link
-                      className="btn-primary listing-action-button"
-                      to={`/sell?listingId=${listing.id}`}
-                    >
-                      <Gavel size={16} />
-                      Create Auction
-                    </Link>
-                  </div>
+                  {canCreateAuction ? (
+                    <div className="listing-side-card">
+                      <h2>Start Auction</h2>
+                      <p>Use this listing ID when creating an auction in the auction module.</p>
+                      <Link
+                        className="btn-primary listing-action-button"
+                        to={`/sell?listingId=${listing.id}`}
+                      >
+                        <Gavel size={16} />
+                        Create Auction
+                      </Link>
+                    </div>
+                  ) : null}
 
                   <div className="listing-side-card listing-side-meta">
                     <p>

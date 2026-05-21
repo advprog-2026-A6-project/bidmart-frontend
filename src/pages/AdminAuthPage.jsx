@@ -42,10 +42,10 @@ const AdminAuthPage = () => {
       <section className="container admin-auth-page">
         <header className="page-header">
           <div>
-            <h1>Admin Auth Console</h1>
-            <p>Kelola role, permission granular, assignment ke user, dan lifecycle deactivation langsung dari frontend.</p>
+            <h1>Pengaturan akses admin</h1>
+            <p>Atur peran, izin akses, dan status akun pengguna dari satu halaman yang sama.</p>
           </div>
-          <Link to="/account" className="account-admin-link">Kembali ke Account</Link>
+          <Link to="/account" className="account-admin-link">Kembali ke Akun</Link>
         </header>
 
         {resultMessage ? <div className="status-banner success">{resultMessage}</div> : null}
@@ -60,7 +60,7 @@ const AdminAuthPage = () => {
                     <div className="section-icon"><ShieldPlus size={18} /></div>
                     <div>
                       <h2>Buat permission baru</h2>
-                      <p>Tambahkan permission granular seperti auction:create atau bid:place saat runtime.</p>
+                      <p>Tambahkan izin akses baru untuk kebutuhan fitur atau peran tertentu.</p>
                     </div>
                   </div>
                   <div className="inline-form">
@@ -90,7 +90,7 @@ const AdminAuthPage = () => {
                     <div className="section-icon"><LockKeyhole size={18} /></div>
                     <div>
                       <h2>Buat role baru</h2>
-                      <p>Masukkan permission sebagai daftar comma-separated agar role langsung memiliki akses awal.</p>
+                      <p>Tentukan nama peran dan daftar izin akses awal yang ingin diberikan.</p>
                     </div>
                   </div>
                   <div className="admin-form-grid">
@@ -103,7 +103,7 @@ const AdminAuthPage = () => {
                       />
                     </label>
                     <label className="field-label field-span-2">
-                      <span>Permissions</span>
+                      <span>Izin akses</span>
                       <input
                         value={roleForm.permissions}
                         onChange={(event) => setRoleForm((current) => ({ ...current, permissions: event.target.value }))}
@@ -139,12 +139,12 @@ const AdminAuthPage = () => {
                     <div className="section-icon"><ShieldPlus size={18} /></div>
                     <div>
                       <h2>Assign atau revoke permission ke role</h2>
-                      <p>Backend akan mengembalikan role terbaru beserta daftar permission hasil mutasi.</p>
+                      <p>Tambahkan atau cabut izin akses pada peran yang sudah ada.</p>
                     </div>
                   </div>
                   <div className="admin-form-grid">
                     <label className="field-label">
-                      <span>Role name</span>
+                      <span>Nama role</span>
                       <input
                         value={rolePermissionForm.roleName}
                         onChange={(event) => setRolePermissionForm((current) => ({ ...current, roleName: event.target.value }))}
@@ -152,7 +152,7 @@ const AdminAuthPage = () => {
                       />
                     </label>
                     <label className="field-label">
-                      <span>Permission name</span>
+                      <span>Nama permission</span>
                       <input
                         value={rolePermissionForm.permissionName}
                         onChange={(event) => setRolePermissionForm((current) => ({ ...current, permissionName: event.target.value }))}
@@ -173,7 +173,7 @@ const AdminAuthPage = () => {
                         )
                       }
                     >
-                      {submittingKey === 'assign-permission' ? 'Meng-update...' : 'Assign permission'}
+                      {submittingKey === 'assign-permission' ? 'Menyimpan...' : 'Tambahkan permission'}
                     </button>
                     <button
                       type="button"
@@ -187,7 +187,7 @@ const AdminAuthPage = () => {
                         )
                       }
                     >
-                      {submittingKey === 'revoke-permission' ? 'Menghapus...' : 'Revoke permission'}
+                      {submittingKey === 'revoke-permission' ? 'Menghapus...' : 'Cabut permission'}
                     </button>
                   </div>
                 </section>
@@ -197,7 +197,7 @@ const AdminAuthPage = () => {
                     <div className="section-icon"><LockKeyhole size={18} /></div>
                     <div>
                       <h2>Assign atau revoke role ke user</h2>
-                      <p>Masukkan user ID target dan role yang ingin ditambahkan atau dicabut.</p>
+                      <p>Tambahkan atau cabut peran pengguna sesuai kebutuhan aksesnya.</p>
                     </div>
                   </div>
                   <div className="admin-form-grid">
@@ -210,7 +210,7 @@ const AdminAuthPage = () => {
                       />
                     </label>
                     <label className="field-label">
-                      <span>Role name</span>
+                      <span>Nama role</span>
                       <input
                         value={userRoleForm.roleName}
                         onChange={(event) => setUserRoleForm((current) => ({ ...current, roleName: event.target.value }))}
@@ -231,7 +231,7 @@ const AdminAuthPage = () => {
                         )
                       }
                     >
-                      {submittingKey === 'assign-role' ? 'Meng-update...' : 'Assign role'}
+                      {submittingKey === 'assign-role' ? 'Menyimpan...' : 'Tambahkan role'}
                     </button>
                     <button
                       type="button"
@@ -245,27 +245,27 @@ const AdminAuthPage = () => {
                         )
                       }
                     >
-                      {submittingKey === 'revoke-role' ? 'Menghapus...' : 'Revoke role'}
+                      {submittingKey === 'revoke-role' ? 'Menghapus...' : 'Cabut role'}
                     </button>
                   </div>
                 </section>
               </>
             ) : (
               <div className="empty-panel">
-                <h2>RBAC manage belum tersedia</h2>
-                <p>Authority `rbac:manage` tidak ada di sesi ini, jadi area pengelolaan role dan permission disembunyikan.</p>
+                <h2>Pengelolaan akses tidak tersedia</h2>
+                <p>Akun yang sedang digunakan belum memiliki izin untuk mengatur peran dan permission.</p>
               </div>
             )}
 
             {canDeactivateUsers ? (
               <section className="surface-card">
                 <div className="section-heading">
-                  <div className="section-icon"><UserX size={18} /></div>
-                  <div>
-                    <h2>Deactivate user</h2>
-                    <p>Nonaktifkan akun pengguna dan invalidasi seluruh sesi aktifnya di semua perangkat.</p>
+                    <div className="section-icon"><UserX size={18} /></div>
+                    <div>
+                      <h2>Nonaktifkan pengguna</h2>
+                      <p>Nonaktifkan akun pengguna dan invalidasi seluruh sesi aktifnya di semua perangkat.</p>
+                    </div>
                   </div>
-                </div>
                 <div className="admin-form-grid">
                   <label className="field-label">
                     <span>User ID</span>
@@ -296,13 +296,13 @@ const AdminAuthPage = () => {
                     )
                   }
                 >
-                  {submittingKey === 'deactivate-user' ? 'Memproses...' : 'Deactivate user'}
+                  {submittingKey === 'deactivate-user' ? 'Memproses...' : 'Nonaktifkan pengguna'}
                 </button>
               </section>
             ) : (
               <div className="empty-panel">
-                <h2>User deactivation belum tersedia</h2>
-                <p>Authority `user:deactivate` tidak ada di sesi ini, jadi control lifecycle akun tidak ditampilkan.</p>
+                <h2>Penonaktifan akun tidak tersedia</h2>
+                <p>Akun yang sedang digunakan belum memiliki izin untuk menonaktifkan pengguna lain.</p>
               </div>
             )}
           </div>
@@ -312,15 +312,15 @@ const AdminAuthPage = () => {
               <div className="section-heading">
                 <div className="section-icon"><LockKeyhole size={18} /></div>
                 <div>
-                  <h2>Preview respons backend</h2>
-                  <p>Setiap aksi admin akan menuliskan payload terakhir di sini supaya integrasi frontend mudah dicek.</p>
+                  <h2>Hasil perubahan terakhir</h2>
+                  <p>Ringkasan hasil aksi terakhir akan ditampilkan di sini.</p>
                 </div>
               </div>
               <div className="response-preview">
                 {responsePayload ? (
                   <pre>{JSON.stringify(responsePayload, null, 2)}</pre>
                 ) : (
-                  <p>Belum ada payload respon yang ditampilkan.</p>
+                  <p>Belum ada hasil perubahan yang ditampilkan.</p>
                 )}
               </div>
             </section>

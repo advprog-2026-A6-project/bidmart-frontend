@@ -39,7 +39,7 @@ const Dashboard = () => {
       <div className="dashboard-container container">
         <div className="dashboard-header">
           <h1>Selamat datang, {profile?.name || session?.email || 'BidMart User'}!</h1>
-          <p>Dashboard ini sekarang jadi pusat kontrol fitur Auth: validasi akun, 2FA, session management, dan RBAC admin.</p>
+          <p>Kelola akun, keamanan, dan aktivitas sesi Anda dari satu tempat.</p>
         </div>
 
         <div className="stats-grid">
@@ -84,35 +84,35 @@ const Dashboard = () => {
         <div className="dashboard-content">
           <div className="dashboard-main">
             <div className="section-title">
-              <h2>Auth Operations</h2>
-              <Link to="/account" className="view-all">Open Account</Link>
+              <h2>Pengaturan akun</h2>
+              <Link to="/account" className="view-all">Buka akun</Link>
             </div>
 
             <div className="ops-grid">
               <div className="ops-card glass-effect">
                 <div className="ops-card-header">
                   <UserRoundCog size={20} />
-                  <h3>Profile & contact preferences</h3>
+                  <h3>Profil dan kontak</h3>
                 </div>
-                <p>Kelola nama, alamat pengiriman, foto profil, serta preferensi kontak email atau phone yang diminta modul lain.</p>
+                <p>Perbarui nama, alamat pengiriman, foto profil, dan metode kontak utama akun Anda.</p>
                 <Link to="/account" className="btn-primary small">Kelola profil</Link>
               </div>
 
               <div className="ops-card glass-effect">
                 <div className="ops-card-header">
                   <ShieldCheck size={20} />
-                  <h3>2FA management</h3>
+                  <h3>Keamanan 2FA</h3>
                 </div>
-                <p>Generate QR TOTP, aktifkan email 2FA, atau matikan faktor kedua dari satu halaman yang sama.</p>
+                <p>Aktifkan perlindungan tambahan lewat aplikasi authenticator atau kode verifikasi email.</p>
                 <Link to="/account" className="btn-primary small">Atur 2FA</Link>
               </div>
 
               <div className="ops-card glass-effect">
                 <div className="ops-card-header">
                   <MonitorSmartphone size={20} />
-                  <h3>Session controls</h3>
+                  <h3>Sesi perangkat</h3>
                 </div>
-                <p>Lihat daftar sesi aktif, revoke manual per sesi, dan pastikan overflow policy backend sudah berjalan.</p>
+                <p>Lihat perangkat yang masih login dan cabut sesi yang sudah tidak Anda gunakan.</p>
                 <Link to="/account" className="btn-primary small">Lihat sesi</Link>
               </div>
 
@@ -122,7 +122,7 @@ const Dashboard = () => {
                     <KeySquare size={20} />
                     <h3>RBAC runtime admin</h3>
                   </div>
-                  <p>Buat role custom, assign permission granular, kelola role user, dan deactivate akun dari admin console.</p>
+                  <p>Kelola role, permission, dan penonaktifan akun dari panel admin.</p>
                   <Link to="/admin/auth" className="btn-primary small">Buka admin auth</Link>
                 </div>
               ) : null}
@@ -131,7 +131,7 @@ const Dashboard = () => {
 
           <div className="dashboard-sidebar">
             <div className="wallet-summary glass-effect auth-summary-card">
-              <h3>Session Snapshot</h3>
+              <h3>Ringkasan akun</h3>
               <div className="summary-balance auth-summary-values">
                 <p>User ID</p>
                 <h2>{profile?.id ?? '-'}</h2>
@@ -141,7 +141,7 @@ const Dashboard = () => {
                 <p><strong>Contact:</strong> {profile?.preferredContactMethod || '-'}</p>
                 <p><strong>Notifications:</strong> {profile?.emailNotificationsEnabled ? 'Email on' : 'Email off'} / {profile?.pushNotificationsEnabled ? 'Push on' : 'Push off'}</p>
               </div>
-              <Link to="/account" className="btn-primary full-width">Go to Account</Link>
+              <Link to="/account" className="btn-primary full-width">Buka pengaturan akun</Link>
             </div>
           </div>
         </div>
