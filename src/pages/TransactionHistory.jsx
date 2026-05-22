@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import { Filter, Clock, CheckCircle } from 'lucide-react';
+import { Filter, Clock } from 'lucide-react';
 import { walletApi } from '../api/walletApi';
 import useAuth from '../context/useAuth';
 import './TransactionHistory.css';
@@ -15,7 +15,6 @@ const TransactionHistory = () => {
   const currentUserId = session?.userId;
 
   const [allTransactions, setAllTransactions] = useState([]);
-  const [filteredTransactions, setFilteredTransactions] = useState([]);
   const [filterType, setFilterType] = useState('ALL');
   const [isLoading, setIsLoading] = useState(true);
 
@@ -31,7 +30,6 @@ const TransactionHistory = () => {
         setIsLoading(true);
         const data = await walletApi.getHistory(currentUserId);
         setAllTransactions(data);
-        setFilteredTransactions(data);
       } catch (err) {
         console.error("Gagal menarik histori mutasi:", err);
         alert("Gagal memuat histori transaksi: " + err.message);
@@ -40,14 +38,13 @@ const TransactionHistory = () => {
       }
     };
     loadFullHistory();
-  }, [currentUserId]);
+  }, [currentUserId, navigate]);
 
-  useEffect(() => {
+  const filteredTransactions = useMemo(() => {
     if (filterType === 'ALL') {
-      setFilteredTransactions(allTransactions);
-    } else {
-      setFilteredTransactions(allTransactions.filter(tx => tx.type === filterType));
+      return allTransactions;
     }
+    return allTransactions.filter(tx => tx.type === filterType);
   }, [filterType, allTransactions]);
 
   const formatIsoDate = (isoString) => {

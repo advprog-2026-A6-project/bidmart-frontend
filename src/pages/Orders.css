@@ -39,6 +39,7 @@
 }
 
 .order-card:has(.status-paid),
+.order-card:has(.status-packed),
 .order-card:has(.status-automatic_created) {
   border-color: var(--secondary-red);
 }
@@ -82,6 +83,7 @@
 }
 
 .status-shipped { background: #e0e7ff; color: #4338ca; }
+.status-packed { background: #fef3c7; color: #92400e; }
 .status-completed { background: #dcfce7; color: #15803d; }
 .status-paid { background: #dcfce7; color: #15803d; }
 .status-automatic_created { background: #fef9c3; color: #a16207; }

@@ -10,6 +10,20 @@ export function getOrders() {
   return request('/orders');
 }
 
+export function getOrderById(orderId) {
+  return request(`/orders/${encodeURIComponent(orderId)}`);
+}
+
+export function getOrdersByUser(userId) {
+  return request(`/orders/user/${encodeURIComponent(userId)}`);
+}
+
+export function markOrderPacked(orderId) {
+  return request(`/orders/${orderId}/packed`, {
+    method: 'POST',
+  });
+}
+
 export function updateTrackingNumber(orderId, trackingNumber) {
   const params = new URLSearchParams({ trackingNumber });
   return request(`/orders/${orderId}/tracking?${params.toString()}`, {
