@@ -77,7 +77,7 @@ export function submitDispute(orderId, reason) {
 
 export function getNotifications(userId) {
   return readWithRetry(() =>
-    request(`/notifications/${encodeURIComponent(userId)}`, {}, { auth: false, retry: false }));
+    request(`/notifications/${encodeURIComponent(userId)}`));
 }
 
 export function getPreference(userId) {
