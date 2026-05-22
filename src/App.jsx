@@ -15,12 +15,14 @@ import AuthPage from './pages/AuthPage';
 import AccountPage from './pages/AccountPage';
 import AdminAuthPage from './pages/AdminAuthPage';
 import ProtectedRoute from './components/ProtectedRoute';
+import GlobalNotificationToasts from './components/GlobalNotificationToasts';
 import AuthProvider from './context/AuthProvider';
 
 function App() {
   return (
     <AuthProvider>
       <Router>
+        <GlobalNotificationToasts />
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/auth" element={<AuthPage />} />
