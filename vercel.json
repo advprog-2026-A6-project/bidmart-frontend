@@ -1,7 +1,10 @@
 {
   "rewrites": [
+    { "source": "/api/auth", "destination": "http://18.210.98.9:8080/api/auth" },
     { "source": "/api/auth/(.*)", "destination": "http://18.210.98.9:8080/api/auth/$1" },
+    { "source": "/api/profile", "destination": "http://18.210.98.9:8080/api/profile" },
     { "source": "/api/profile/(.*)", "destination": "http://18.210.98.9:8080/api/profile/$1" },
+    { "source": "/api/admin", "destination": "http://18.210.98.9:8080/api/admin" },
     { "source": "/api/admin/(.*)", "destination": "http://18.210.98.9:8080/api/admin/$1" },
     { "source": "/api/auctions", "destination": "http://18.210.98.9:8080/api/auctions" },
     { "source": "/api/auctions/(.*)", "destination": "http://18.210.98.9:8080/api/auctions/$1" },
