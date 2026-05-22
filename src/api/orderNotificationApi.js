@@ -3,7 +3,8 @@ import { apiFetch } from './apiClient';
 const ORDER_NOTIFICATION_API_BASE =
   import.meta.env.VITE_ORDER_NOTIFICATION_API_BASE || '/api/order-notification';
 
-const request = (path, options = {}) => apiFetch(`${ORDER_NOTIFICATION_API_BASE}${path}`, options);
+const request = (path, options = {}, config = {}) =>
+  apiFetch(`${ORDER_NOTIFICATION_API_BASE}${path}`, options, config);
 
 
 export function getOrders() {
@@ -45,7 +46,7 @@ export function submitDispute(orderId, reason) {
 }
 
 export function getNotifications(userId) {
-  return request(`/notifications/${encodeURIComponent(userId)}`);
+  return request(`/notifications/${encodeURIComponent(userId)}`, {}, { auth: false, retry: false });
 }
 
 export function getPreference(userId) {
