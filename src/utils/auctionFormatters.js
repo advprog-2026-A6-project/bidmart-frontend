@@ -17,9 +17,18 @@ export const formatCurrency = (value) => {
   return currencyFormatter.format(amount);
 };
 
+const TIMEZONE_PATTERN = /(?:Z|[+-]\d{2}:?\d{2})$/;
+
+export const parseBackendDateTime = (value) => {
+  if (!value) return null;
+
+  const text = String(value);
+  return new Date(TIMEZONE_PATTERN.test(text) ? text : `${text}Z`);
+};
+
 export const formatDateTime = (value) => {
   if (!value) return '-';
-  return dateTimeFormatter.format(new Date(value));
+  return dateTimeFormatter.format(parseBackendDateTime(value));
 };
 
 export const getCurrentPrice = (auction) => {
@@ -48,7 +57,7 @@ export const getMinimumBid = (auction) => {
 export const getTimeLeft = (endAt) => {
   if (!endAt) return 'Not started';
 
-  const remainingMs = new Date(endAt).getTime() - Date.now();
+  const remainingMs = parseBackendDateTime(endAt).getTime() - Date.now();
   if (remainingMs <= 0) return 'Ended';
 
   const totalSeconds = Math.floor(remainingMs / 1000);

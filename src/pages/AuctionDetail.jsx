@@ -23,6 +23,7 @@ import {
   getMinimumBid,
   getStatusLabel,
   getTimeLeft,
+  parseBackendDateTime,
 } from '../utils/auctionFormatters';
 import {
   getAuctionCategoryName,
@@ -200,7 +201,7 @@ const AuctionDetail = () => {
   const isSeller = Boolean(currentUserId && String(currentUserId) === String(auction?.sellerId));
   const canStartAuction = isSeller && hasAnyAuthority(['auction:start']);
   const canCloseAuction = isSeller && hasAnyAuthority(['auction:close']);
-  const hasEnded = auction?.endAt ? new Date(auction.endAt).getTime() <= currentTime : false;
+  const hasEnded = auction?.endAt ? parseBackendDateTime(auction.endAt).getTime() <= currentTime : false;
   const canPlaceBid = isRunningAuction && isAuthenticated && !isSeller;
 
   return (
