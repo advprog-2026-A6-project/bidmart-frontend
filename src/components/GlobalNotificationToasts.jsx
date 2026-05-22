@@ -41,6 +41,11 @@ const normalizeNotification = (payload) => {
   return payload;
 };
 
+const HIDDEN_PREFERENCE_TYPES = new Set(['EMAIL', 'EMAIL_ERROR', 'SYSTEM']);
+
+const isVisibleNotification = (notification = {}) =>
+  !HIDDEN_PREFERENCE_TYPES.has(String(notification.preferenceType || '').toUpperCase());
+
 const GlobalNotificationToasts = () => {
   const { profile, session, status } = useAuth();
   const userId = resolveUserId(profile, session);
@@ -51,7 +56,7 @@ const GlobalNotificationToasts = () => {
     const notification = normalizeNotification(payload);
     const message = notification?.message;
 
-    if (!message) {
+    if (!message || !isVisibleNotification(notification)) {
       return;
     }
 
@@ -98,11 +103,14 @@ const GlobalNotificationToasts = () => {
         .then(notifications => {
           const knownIds = knownIdsRef.current;
           const newNotifications = notifications
+            .filter(isVisibleNotification)
             .filter(notification => !knownIds.has(String(notification.id)))
             .slice(0, 3)
             .reverse();
 
-          notifications.forEach(notification => knownIds.add(String(notification.id)));
+          notifications
+            .filter(isVisibleNotification)
+            .forEach(notification => knownIds.add(String(notification.id)));
           newNotifications.forEach(showToast);
         })
         .catch(() => {});

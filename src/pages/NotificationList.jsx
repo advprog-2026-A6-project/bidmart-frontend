@@ -45,6 +45,14 @@ const getToastTone = (notification = {}) => {
   return 'success';
 };
 
+const HIDDEN_PREFERENCE_TYPES = new Set(['EMAIL', 'EMAIL_ERROR', 'SYSTEM']);
+
+const isVisibleNotification = (notification = {}) =>
+  !HIDDEN_PREFERENCE_TYPES.has(String(notification.preferenceType || '').toUpperCase());
+
+const onlyVisibleNotifications = (notificationData = []) =>
+  notificationData.filter(isVisibleNotification);
+
 const showNotificationToast = (setLiveToasts, notification = {}) => {
   const message = typeof notification === 'string' ? notification : notification.message;
   if (!message) {
@@ -75,9 +83,7 @@ const NotificationList = () => {
   const [savingPreference, setSavingPreference] = useState(false);
   const [error, setError] = useState(null);
   const [liveToasts, setLiveToasts] = useState([]);
-  const [selectedUserId, setSelectedUserId] = useState(() => localStorage.getItem('bidmartUserId') || '');
-  const userId = selectedUserId || authenticatedUserId;
-  const [userIdInput, setUserIdInput] = useState(() => localStorage.getItem('bidmartUserId') || '');
+  const userId = authenticatedUserId;
   const [preference, setPreference] = useState({
     email: '',
     emailEnabled: false,
@@ -114,7 +120,7 @@ const NotificationList = () => {
         }
 
         const notificationData = Array.isArray(notificationResult.value)
-          ? notificationResult.value
+          ? onlyVisibleNotifications(notificationResult.value)
           : [];
         const preferenceData = preferenceResult.status === 'fulfilled' ? preferenceResult.value : null;
 
@@ -157,6 +163,9 @@ const NotificationList = () => {
 
     return subscribeToOrderNotificationTopic(`/topic/notifications/${userId}`, (payload) => {
       const message = typeof payload === 'string' ? payload : payload?.message;
+      if (typeof payload !== 'string' && !isVisibleNotification(payload)) {
+        return;
+      }
       if (!message) {
         loadNotifications(userId);
         return;
@@ -191,21 +200,7 @@ const NotificationList = () => {
     return () => window.clearInterval(intervalId);
   }, [loadNotifications, userId]);
 
-  const handleApplyUser = (event) => {
-    event.preventDefault();
-    const nextUserId = userIdInput.trim() || authenticatedUserId;
-    if (!nextUserId) return;
-    localStorage.setItem('bidmartUserId', nextUserId);
-    setSelectedUserId(nextUserId);
-    setUserIdInput(nextUserId);
-  };
 
-  const handleUseMyUserId = () => {
-    if (!authenticatedUserId) return;
-    localStorage.setItem('bidmartUserId', authenticatedUserId);
-    setSelectedUserId(authenticatedUserId);
-    setUserIdInput(authenticatedUserId);
-  };
 
   const handleSavePreference = () => {
     setSavingPreference(true);
@@ -278,29 +273,12 @@ const NotificationList = () => {
             <h1>Notifications</h1>
             <p>View order and wallet updates from your notification service.</p>
           </div>
-          <form className="user-filter" onSubmit={handleApplyUser}>
-            <input
-              value={userIdInput}
-              onChange={(event) => setUserIdInput(event.target.value)}
-              placeholder="User ID"
-              aria-label="User ID"
-            />
-            {authenticatedUserId && userIdInput !== authenticatedUserId && (
-              <button type="button" className="btn-outline" onClick={handleUseMyUserId}>
-                My ID
-              </button>
-            )}
-            <button type="submit" className="btn-outline">Load</button>
-          </form>
         </div>
 
         <div className="preference-panel">
           <div>
             <h2>Notification Preferences</h2>
             <p>User ID: {userId}</p>
-            {authenticatedUserId && userId !== authenticatedUserId && (
-              <p className="preference-warning">Login ID: {authenticatedUserId}</p>
-            )}
           </div>
           <input
             type="email"
