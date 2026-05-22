@@ -1,6 +1,11 @@
 import { getAccessToken } from '../utils/authStorage';
 
-const GATEWAY_URL = (import.meta.env.VITE_API_GATEWAY_URL || '').trim().replace(/\/$/, '');
+const GATEWAY_URL = (
+  import.meta.env.VITE_API_GATEWAY_BASE ||
+  import.meta.env.VITE_API_GATEWAY_URL ||
+  import.meta.env.VITE_GATEWAY_URL ||
+  ''
+).trim().replace(/\/$/, '');
 const WALLET_API_BASE = `${GATEWAY_URL}/api/wallet`;
 
 const getHeaders = (userId, useIdempotency = false) => {
