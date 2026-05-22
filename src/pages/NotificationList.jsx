@@ -45,6 +45,28 @@ const getToastTone = (notification = {}) => {
   return 'success';
 };
 
+const showNotificationToast = (setLiveToasts, notification = {}) => {
+  const message = typeof notification === 'string' ? notification : notification.message;
+  if (!message) {
+    return;
+  }
+
+  const toastId = `toast-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  setLiveToasts(current => [
+    ...current,
+    {
+      id: toastId,
+      message,
+      type: notification?.type || 'LIVE_NOTIFICATION',
+      tone: getToastTone(typeof notification === 'string' ? { message: notification } : notification),
+    },
+  ]);
+
+  window.setTimeout(() => {
+    setLiveToasts(current => current.filter(toast => toast.id !== toastId));
+  }, 5000);
+};
+
 const NotificationList = () => {
   const { profile, session, status } = useAuth();
   const authenticatedUserId = resolveUserId(profile, session);
@@ -62,7 +84,7 @@ const NotificationList = () => {
     pushEnabled: true,
   });
 
-  const loadNotifications = useCallback((targetUserId = userId) => {
+  const loadNotifications = useCallback((targetUserId = userId, { notifyNew = false } = {}) => {
     if (!targetUserId) {
       if (status === 'loading') {
         return;
@@ -81,7 +103,18 @@ const NotificationList = () => {
       getPreference(targetUserId).catch(() => null),
     ])
       .then(([notificationData, preferenceData]) => {
-        setNotifications(notificationData);
+        setNotifications(current => {
+          if (notifyNew && current.length > 0) {
+            const knownIds = new Set(current.map(notification => String(notification.id)));
+            notificationData
+              .filter(notification => !knownIds.has(String(notification.id)))
+              .slice(0, 3)
+              .reverse()
+              .forEach(notification => showNotificationToast(setLiveToasts, notification));
+          }
+
+          return notificationData;
+        });
         if (preferenceData) {
           setPreference({
             email: preferenceData.email || '',
@@ -111,16 +144,7 @@ const NotificationList = () => {
         return;
       }
 
-      const toastId = `toast-${Date.now()}`;
-      setLiveToasts(current => [
-        ...current,
-        {
-          id: toastId,
-          message,
-          type: payload?.type || 'LIVE_NOTIFICATION',
-          tone: getToastTone(typeof payload === 'string' ? { message: payload } : payload),
-        },
-      ]);
+      showNotificationToast(setLiveToasts, typeof payload === 'string' ? { message: payload } : payload);
 
       setNotifications(current => [
         {
@@ -134,13 +158,19 @@ const NotificationList = () => {
       ]);
 
       window.setTimeout(() => {
-        setLiveToasts(current => current.filter(toast => toast.id !== toastId));
-      }, 5000);
-
-      window.setTimeout(() => {
         loadNotifications(userId);
       }, 600);
-    });
+    }, () => {});
+  }, [loadNotifications, userId]);
+
+  useEffect(() => {
+    if (!userId) return undefined;
+
+    const intervalId = window.setInterval(() => {
+      loadNotifications(userId, { notifyNew: true });
+    }, 5000);
+
+    return () => window.clearInterval(intervalId);
   }, [loadNotifications, userId]);
 
   const handleApplyUser = (event) => {

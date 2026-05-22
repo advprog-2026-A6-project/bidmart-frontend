@@ -25,9 +25,20 @@ const resolveWsBase = () => {
   }
 };
 
+const isMixedContentWebSocket = (wsBase) => (
+  typeof window !== 'undefined' &&
+  window.location.protocol === 'https:' &&
+  wsBase.startsWith('ws:')
+);
+
 const createSockJsUrl = () => {
+  const wsBase = resolveWsBase();
+  if (isMixedContentWebSocket(wsBase)) {
+    return null;
+  }
+
   const sessionId = Math.random().toString(36).slice(2, 10);
-  return `${resolveWsBase()}/ws/000/${sessionId}/websocket`;
+  return `${wsBase}/ws/000/${sessionId}/websocket`;
 };
 
 const decodeSockJsMessages = (data) => {
@@ -60,12 +71,18 @@ const parseStompBody = (frame) => {
   }
 };
 
-export const subscribeToOrderNotificationTopic = (destination, onMessage) => {
+export const subscribeToOrderNotificationTopic = (destination, onMessage, onError = () => {}) => {
   if (typeof window === 'undefined' || typeof WebSocket === 'undefined') {
     return () => {};
   }
 
-  const socket = new WebSocket(createSockJsUrl());
+  const sockJsUrl = createSockJsUrl();
+  if (!sockJsUrl) {
+    onError(new Error('Live notification WebSocket is not available for this deployment.'));
+    return () => {};
+  }
+
+  const socket = new WebSocket(sockJsUrl);
   const subscriptionId = `sub-${Date.now()}-${Math.random().toString(36).slice(2)}`;
   let connected = false;
 
@@ -91,6 +108,10 @@ export const subscribeToOrderNotificationTopic = (destination, onMessage) => {
 
   socket.onopen = () => {
     sendFrame('CONNECT\naccept-version:1.2\nheart-beat:10000,10000\n\n');
+  };
+
+  socket.onerror = () => {
+    onError(new Error('Live notification WebSocket connection failed.'));
   };
 
   return () => {

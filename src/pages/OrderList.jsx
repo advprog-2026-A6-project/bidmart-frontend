@@ -4,17 +4,55 @@ import { CheckCircle, AlertCircle, Clock, Package, Pencil } from 'lucide-react';
 import {
   confirmReceipt,
   getOrders,
-  getOrdersByUser,
   markOrderPacked,
   submitDispute,
   updateTrackingNumber,
 } from '../api/orderNotificationApi';
+import { auctionApi } from '../api/auctionApi';
 import useAuth from '../context/useAuth';
 import './Orders.css';
 
 const resolveUserId = (profile, session) => {
-  const rawUserId = session?.userId ?? profile?.id ?? profile?.userId ?? localStorage.getItem('bidmartUserId');
+  const rawUserId = session?.userId ?? profile?.id ?? profile?.userId;
   return rawUserId ? String(rawUserId) : '';
+};
+
+const getAuctionSellerId = (auction) => {
+  const sellerId = auction?.sellerId ?? auction?.seller?.id ?? auction?.ownerId;
+  return sellerId ? String(sellerId) : '';
+};
+
+const enrichOrdersWithAuctionRole = async (orderData, currentUserId) => {
+  if (!currentUserId) {
+    return orderData;
+  }
+
+  const auctionIds = [...new Set(orderData.map(order => order.auctionId).filter(Boolean))];
+  const auctionEntries = await Promise.allSettled(
+    auctionIds.map(auctionId => auctionApi.getAuction(auctionId).then(auction => [String(auctionId), auction]))
+  );
+  const auctionById = new Map(
+    auctionEntries
+      .filter(result => result.status === 'fulfilled')
+      .map(result => result.value)
+  );
+
+  return orderData
+    .map(order => {
+      const auction = auctionById.get(String(order.auctionId));
+      const sellerId = getAuctionSellerId(auction);
+      const isBuyer = String(order.userId) === String(currentUserId);
+      const isSeller = sellerId === String(currentUserId);
+
+      return {
+        ...order,
+        sellerId,
+        role: isSeller ? 'SELLER' : 'BUYER',
+        canManageShipment: isSeller,
+        canManageReceipt: isBuyer,
+      };
+    })
+    .filter(order => order.canManageShipment || order.canManageReceipt);
 };
 
 const OrderList = () => {
@@ -31,11 +69,11 @@ const OrderList = () => {
   const fetchOrders = useCallback(() => {
     setLoading(true);
     setError(null);
-    const orderRequest = userId ? getOrdersByUser(userId) : getOrders();
 
-    orderRequest
-      .then(data => {
-        setOrders(data);
+    getOrders()
+      .then(data => enrichOrdersWithAuctionRole(data, userId))
+      .then(enrichedOrders => {
+        setOrders(enrichedOrders);
         setLoading(false);
       })
       .catch(err => {
@@ -149,6 +187,10 @@ const OrderList = () => {
                     <span>Buyer ID</span>
                     <strong>{order.userId || '-'}</strong>
                   </div>
+                  <div>
+                    <span>Your Role</span>
+                    <strong>{order.role || '-'}</strong>
+                  </div>
                 </div>
 
                 <div className="price-panel">
@@ -170,13 +212,14 @@ const OrderList = () => {
                     </>
                   )}
 
-                  {(order.status === 'PAID' || order.status === 'AUTOMATIC_CREATED') && (
+                  {order.canManageShipment && (order.status === 'PAID' || order.status === 'AUTOMATIC_CREATED') && (
                     <button className="btn-outline tracking-button" onClick={() => handleMarkPacked(order.id)}>
                       <Package size={18} /> Mark as Packed
                     </button>
                   )}
 
-                  {(order.status === 'PAID' || order.status === 'PACKED' || order.status === 'AUTOMATIC_CREATED')
+                  {order.canManageShipment
+                    && (order.status === 'PAID' || order.status === 'PACKED' || order.status === 'AUTOMATIC_CREATED')
                     && trackingOrderId !== order.id && (
                     <button className="btn-primary tracking-button" onClick={() => setTrackingOrderId(order.id)}>
                       <Pencil size={18} /> Input Resi
@@ -198,7 +241,7 @@ const OrderList = () => {
                     </div>
                   )}
 
-                  {order.status === 'SHIPPED' && (
+                  {order.canManageReceipt && order.status === 'SHIPPED' && (
                     <button className="btn-primary tracking-button" onClick={() => handleConfirmReceipt(order.id)}>
                       <CheckCircle size={18} /> Confirm Receipt
                     </button>
@@ -206,7 +249,7 @@ const OrderList = () => {
                 </div>
 
                 <div className="order-actions">
-                  {order.status === 'COMPLETED' && disputeOrderId !== order.id && (
+                  {order.canManageReceipt && order.status === 'COMPLETED' && disputeOrderId !== order.id && (
                     <button className="btn-outline full-width" onClick={() => setDisputeOrderId(order.id)}>
                       <AlertCircle size={18} /> File Dispute
                     </button>
