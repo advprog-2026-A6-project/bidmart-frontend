@@ -1,5 +1,15 @@
 {
   "rewrites": [
+    { "source": "/api/auth/(.*)", "destination": "http://18.210.98.9:8080/api/auth/$1" },
+    { "source": "/api/profile/(.*)", "destination": "http://18.210.98.9:8080/api/profile/$1" },
+    { "source": "/api/admin/(.*)", "destination": "http://18.210.98.9:8080/api/admin/$1" },
+    { "source": "/api/auctions/(.*)", "destination": "http://18.210.98.9:8080/api/auctions/$1" },
+    { "source": "/api/wallet/(.*)", "destination": "http://18.210.98.9:8080/api/wallet/$1" },
+    { "source": "/api/order-notification/(.*)", "destination": "http://18.210.98.9:8080/api/order-notification/$1" },
+    { "source": "/api/notifications/(.*)", "destination": "http://18.210.98.9:8080/api/notifications/$1" },
+    { "source": "/api/categories/(.*)", "destination": "http://18.210.98.9:8080/api/categories/$1" },
+    { "source": "/listings", "destination": "http://18.210.98.9:8080/listings" },
+    { "source": "/listings/(.*)", "destination": "http://18.210.98.9:8080/listings/$1" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
