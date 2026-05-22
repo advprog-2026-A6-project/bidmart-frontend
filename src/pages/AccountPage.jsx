@@ -27,6 +27,8 @@ const formatter = new Intl.DateTimeFormat('id-ID', {
   timeStyle: 'short',
 });
 
+const resolveUserId = (profile, session) => session?.userId ?? profile?.id ?? profile?.userId;
+
 const AccountPage = () => {
   const {
     disableTwoFactor,
@@ -53,6 +55,7 @@ const AccountPage = () => {
   const [profileImageBroken, setProfileImageBroken] = useState(false);
 
   const canManageRbac = hasAnyAuthority(['rbac:manage', 'user:deactivate']);
+  const currentUserId = resolveUserId(profile, session);
 
   useEffect(() => {
     const bootstrap = async () => {
@@ -457,7 +460,7 @@ const AccountPage = () => {
                 <dl className="summary-list">
                   <div>
                     <dt>User ID</dt>
-                    <dd>{profile?.id ?? '-'}</dd>
+                    <dd>{currentUserId ?? '-'}</dd>
                   </div>
                   <div>
                     <dt>Email</dt>

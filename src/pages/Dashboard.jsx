@@ -5,6 +5,8 @@ import AppShell from '../components/AppShell';
 import useAuth from '../context/useAuth';
 import './Dashboard.css';
 
+const resolveUserId = (profile, session) => session?.userId ?? profile?.id ?? profile?.userId;
+
 const Dashboard = () => {
   const { getActiveSessions, hasAnyAuthority, profile, refreshProfile, session } = useAuth();
   const [sessionCount, setSessionCount] = useState(0);
@@ -33,6 +35,7 @@ const Dashboard = () => {
 
   const permissionCount = session?.authorities?.length || 0;
   const canManageAdmin = hasAnyAuthority(['rbac:manage', 'user:deactivate']);
+  const currentUserId = resolveUserId(profile, session);
 
   return (
     <AppShell>
@@ -134,7 +137,7 @@ const Dashboard = () => {
               <h3>Ringkasan akun</h3>
               <div className="summary-balance auth-summary-values">
                 <p>User ID</p>
-                <h2>{profile?.id ?? '-'}</h2>
+                <h2>{currentUserId ?? '-'}</h2>
               </div>
               <div className="auth-summary-meta">
                 <p><strong>Email:</strong> {profile?.email || session?.email || '-'}</p>

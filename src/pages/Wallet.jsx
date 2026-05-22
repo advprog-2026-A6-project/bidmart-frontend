@@ -8,17 +8,15 @@ import useAuth from '../context/useAuth';
 import './Wallet.css';
 
 const Wallet = () => {
-  const { profile, session } = useAuth();
-  const currentUserId = session?.userId ?? profile?.id ?? profile?.userId;
+  const { session } = useAuth();
+  const currentUserId = session?.userId;
 
-  const [walletCreatedAt, setWalletCreatedAt] = useState('');
   const [availableBalance, setAvailableBalance] = useState(0);
   const [heldBalance, setHeldBalance] = useState(0);
   const [bankBalance, setBankBalance] = useState(0);
   const [bankAccountInfo, setBankAccountInfo] = useState('');
   const [recentTransactions, setRecentTransactions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [loadError, setLoadError] = useState('');
 
   const [showTopUpModal, setShowTopUpModal] = useState(false);
   const [topUpAmount, setTopUpAmount] = useState('');
@@ -29,20 +27,15 @@ const Wallet = () => {
   const [withdrawAmount, setWithdrawAmount] = useState('');
 
   const fetchAllWalletData = useCallback(async () => {
-    if (!currentUserId) {
-      setIsLoading(false);
-      return;
-    }
+    if (!currentUserId) return;
     try {
       setIsLoading(true);
-      setLoadError('');
       const [wallet, bank, history] = await Promise.all([
         walletApi.getWallet(currentUserId),
         walletApi.getBankAccount(currentUserId),
         walletApi.getHistory(currentUserId)
       ]);
 
-      setWalletCreatedAt(wallet.createdAt || '');
       setAvailableBalance(wallet.balance || 0);
       setHeldBalance(wallet.heldBalance || 0);
       setBankBalance(bank.balance || 0);
@@ -50,7 +43,6 @@ const Wallet = () => {
       setRecentTransactions(history.slice(0, 3)); // Ambil 3 transaksi terbaru
     } catch (err) {
       console.error("Gagal memuat data dompet:", err);
-      setLoadError(err.message || 'Gagal memuat data dompet.');
     } finally {
       setIsLoading(false);
     }
@@ -131,15 +123,7 @@ const Wallet = () => {
           <div className="wallet-header">
             <h1 className="wallet-title"><WalletIcon size={28} /> Dompet Saya</h1>
             <p className="wallet-subtitle">Kelola saldo, penarikan dana, dan lacak riwayat transaksi penawaran lelang Anda.</p>
-            <div className="wallet-identity-row">
-              <span>User ID: <strong>{currentUserId || '-'}</strong></span>
-              {walletCreatedAt ? (
-                <span>Dibuat: <strong>{formatIsoDate(walletCreatedAt)}</strong></span>
-              ) : null}
-            </div>
           </div>
-
-          {loadError && <div className="wallet-error-banner">{loadError}</div>}
 
           <div className="balance-grid">
             <div className="balance-card primary-card">
