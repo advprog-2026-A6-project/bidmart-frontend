@@ -7,9 +7,25 @@ import {
   updatePreference,
 } from '../api/orderNotificationApi';
 import { subscribeToOrderNotificationTopic } from '../api/orderNotificationLive';
+import useAuth from '../context/useAuth';
 import './Notifications.css';
 
-const DEFAULT_USER_ID = '1';
+const resolveUserId = (profile, session) => {
+  const rawUserId = session?.userId ?? profile?.id ?? profile?.userId;
+  return rawUserId ? String(rawUserId) : '';
+};
+
+const resolveLoadErrorMessage = (error) => {
+  if (error?.status === 401) {
+    return 'Sesi login tidak valid atau sudah habis. Silakan login ulang lalu buka Notifications lagi.';
+  }
+
+  if (error?.status === 403) {
+    return 'User ID ini tidak cocok dengan akun yang sedang login. Gunakan User ID akun Anda sendiri.';
+  }
+
+  return error?.message || 'Could not load notifications. Make sure the order-notification backend is running.';
+};
 
 const getToastTone = (notification = {}) => {
   const status = String(notification.status || '').toLowerCase();
@@ -30,13 +46,16 @@ const getToastTone = (notification = {}) => {
 };
 
 const NotificationList = () => {
+  const { profile, session, status } = useAuth();
+  const authenticatedUserId = resolveUserId(profile, session);
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [savingPreference, setSavingPreference] = useState(false);
   const [error, setError] = useState(null);
   const [liveToasts, setLiveToasts] = useState([]);
-  const [userId, setUserId] = useState(() => localStorage.getItem('bidmartUserId') || DEFAULT_USER_ID);
-  const [userIdInput, setUserIdInput] = useState(userId);
+  const [selectedUserId, setSelectedUserId] = useState(() => localStorage.getItem('bidmartUserId') || '');
+  const userId = selectedUserId || authenticatedUserId;
+  const [userIdInput, setUserIdInput] = useState(() => localStorage.getItem('bidmartUserId') || '');
   const [preference, setPreference] = useState({
     email: '',
     emailEnabled: false,
@@ -44,6 +63,16 @@ const NotificationList = () => {
   });
 
   const loadNotifications = useCallback((targetUserId = userId) => {
+    if (!targetUserId) {
+      if (status === 'loading') {
+        return;
+      }
+
+      setLoading(false);
+      setError('Silakan login terlebih dahulu untuk melihat notifikasi.');
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
@@ -63,10 +92,10 @@ const NotificationList = () => {
         setLoading(false);
       })
       .catch(err => {
-        setError(err.message);
+        setError(resolveLoadErrorMessage(err));
         setLoading(false);
       });
-  }, [userId]);
+  }, [status, userId]);
 
   useEffect(() => {
     Promise.resolve().then(() => loadNotifications(userId));
@@ -116,10 +145,18 @@ const NotificationList = () => {
 
   const handleApplyUser = (event) => {
     event.preventDefault();
-    const nextUserId = userIdInput.trim();
+    const nextUserId = userIdInput.trim() || authenticatedUserId;
     if (!nextUserId) return;
     localStorage.setItem('bidmartUserId', nextUserId);
-    setUserId(nextUserId);
+    setSelectedUserId(nextUserId);
+    setUserIdInput(nextUserId);
+  };
+
+  const handleUseMyUserId = () => {
+    if (!authenticatedUserId) return;
+    localStorage.setItem('bidmartUserId', authenticatedUserId);
+    setSelectedUserId(authenticatedUserId);
+    setUserIdInput(authenticatedUserId);
   };
 
   const handleSavePreference = () => {
@@ -200,6 +237,11 @@ const NotificationList = () => {
               placeholder="User ID"
               aria-label="User ID"
             />
+            {authenticatedUserId && userIdInput !== authenticatedUserId && (
+              <button type="button" className="btn-outline" onClick={handleUseMyUserId}>
+                My ID
+              </button>
+            )}
             <button type="submit" className="btn-outline">Load</button>
           </form>
         </div>
@@ -208,6 +250,9 @@ const NotificationList = () => {
           <div>
             <h2>Notification Preferences</h2>
             <p>User ID: {userId}</p>
+            {authenticatedUserId && userId !== authenticatedUserId && (
+              <p className="preference-warning">Login ID: {authenticatedUserId}</p>
+            )}
           </div>
           <input
             type="email"
@@ -241,7 +286,7 @@ const NotificationList = () => {
           <div className="loading-state">Loading notifications...</div>
         ) : error ? (
           <div className="error-state">
-            <p>Could not load notifications. Make sure the order-notification backend is running.</p>
+            <p>{error}</p>
             <button className="btn-outline" onClick={() => loadNotifications(userId)}>Try Again</button>
           </div>
         ) : notifications.length === 0 ? (
