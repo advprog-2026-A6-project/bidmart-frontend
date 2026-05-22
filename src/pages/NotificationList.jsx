@@ -84,7 +84,7 @@ const NotificationList = () => {
     pushEnabled: true,
   });
 
-  const loadNotifications = useCallback((targetUserId = userId, { notifyNew = false } = {}) => {
+  const loadNotifications = useCallback((targetUserId = userId, { notifyNew = false, silent = false } = {}) => {
     if (!targetUserId) {
       if (status === 'loading') {
         return;
@@ -95,14 +95,29 @@ const NotificationList = () => {
       return;
     }
 
-    setLoading(true);
-    setError(null);
+    if (!silent) {
+      setLoading(true);
+      setError(null);
+    }
 
-    Promise.all([
+    Promise.allSettled([
       getNotifications(targetUserId),
       getPreference(targetUserId).catch(() => null),
     ])
-      .then(([notificationData, preferenceData]) => {
+      .then(([notificationResult, preferenceResult]) => {
+        if (notificationResult.status === 'rejected') {
+          if (!silent || notifications.length === 0) {
+            setError(resolveLoadErrorMessage(notificationResult.reason));
+          }
+          setLoading(false);
+          return;
+        }
+
+        const notificationData = Array.isArray(notificationResult.value)
+          ? notificationResult.value
+          : [];
+        const preferenceData = preferenceResult.status === 'fulfilled' ? preferenceResult.value : null;
+
         setNotifications(current => {
           if (notifyNew && current.length > 0) {
             const knownIds = new Set(current.map(notification => String(notification.id)));
@@ -122,13 +137,16 @@ const NotificationList = () => {
             pushEnabled: Boolean(preferenceData.pushEnabled),
           });
         }
+        setError(null);
         setLoading(false);
       })
       .catch(err => {
-        setError(resolveLoadErrorMessage(err));
+        if (!silent || notifications.length === 0) {
+          setError(resolveLoadErrorMessage(err));
+        }
         setLoading(false);
       });
-  }, [status, userId]);
+  }, [notifications.length, status, userId]);
 
   useEffect(() => {
     Promise.resolve().then(() => loadNotifications(userId));
@@ -167,7 +185,7 @@ const NotificationList = () => {
     if (!userId) return undefined;
 
     const intervalId = window.setInterval(() => {
-      loadNotifications(userId, { notifyNew: true });
+      loadNotifications(userId, { notifyNew: true, silent: true });
     }, 5000);
 
     return () => window.clearInterval(intervalId);
