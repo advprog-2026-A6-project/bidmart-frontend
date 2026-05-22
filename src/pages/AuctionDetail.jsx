@@ -47,7 +47,7 @@ const resolveUserId = (profile, session) => {
 
 const AuctionDetail = () => {
   const { auctionId } = useParams();
-  const { isAuthenticated, profile, session } = useAuth();
+  const { hasAnyAuthority, isAuthenticated, profile, session } = useAuth();
   const [auction, setAuction] = useState(null);
   const [bids, setBids] = useState([]);
   const [bidAmount, setBidAmount] = useState('');
@@ -56,6 +56,7 @@ const AuctionDetail = () => {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [actionMessage, setActionMessage] = useState('');
+  const [currentTime, setCurrentTime] = useState(0);
 
   const loadAuctionData = useCallback(async () => {
     const [auctionData, bidData] = await Promise.all([
@@ -123,6 +124,14 @@ const AuctionDetail = () => {
     });
   }, [auctionId, loadAuctionData]);
 
+  useEffect(() => {
+    const updateCurrentTime = () => setCurrentTime(new Date().getTime());
+    updateCurrentTime();
+    const intervalId = window.setInterval(updateCurrentTime, 1000);
+
+    return () => window.clearInterval(intervalId);
+  }, []);
+
   const handlePlaceBid = async (event) => {
     event.preventDefault();
     setSubmitting(true);
@@ -187,6 +196,12 @@ const AuctionDetail = () => {
   const canActivate = auction?.status === 'DRAFT';
   const currentPrice = getCurrentPrice(auction);
   const nextBid = getMinimumBid(auction);
+  const currentUserId = resolveUserId(profile, session);
+  const isSeller = Boolean(currentUserId && String(currentUserId) === String(auction?.sellerId));
+  const canStartAuction = isSeller && hasAnyAuthority(['auction:start']);
+  const canCloseAuction = isSeller && hasAnyAuthority(['auction:close']);
+  const hasEnded = auction?.endAt ? new Date(auction.endAt).getTime() <= currentTime : false;
+  const canPlaceBid = isRunningAuction && isAuthenticated && !isSeller;
 
   return (
     <>
@@ -299,7 +314,7 @@ const AuctionDetail = () => {
                   {error && <div className="auction-action-message error">{error}</div>}
                   {actionMessage && <div className="auction-action-message success">{actionMessage}</div>}
 
-                  {isRunningAuction && isAuthenticated && (
+                  {canPlaceBid && (
                     <form onSubmit={handlePlaceBid}>
                       <label className="bid-input-label" htmlFor="bidderName">
                         Bidder Name
@@ -364,13 +379,19 @@ const AuctionDetail = () => {
                     </div>
                   )}
 
+                  {isRunningAuction && isAuthenticated && isSeller && (
+                    <div className="auction-unavailable-note">
+                      Sellers cannot bid on their own auction.
+                    </div>
+                  )}
+
                   {!isRunningAuction && (
                     <div className="auction-unavailable-note">
                       Bidding is available only when auction status is ACTIVE or EXTENDED.
                     </div>
                   )}
 
-                  {canActivate && (
+                  {canActivate && canStartAuction && (
                     <button
                       className="btn-primary auction-place-bid auction-admin-action"
                       type="button"
@@ -382,7 +403,7 @@ const AuctionDetail = () => {
                     </button>
                   )}
 
-                  {isRunningAuction && (
+                  {isRunningAuction && canCloseAuction && hasEnded && (
                     <button
                       className="btn-outline auction-secondary-action"
                       type="button"
@@ -392,6 +413,12 @@ const AuctionDetail = () => {
                       <Square size={16} />
                       Close Auction
                     </button>
+                  )}
+
+                  {isRunningAuction && canCloseAuction && !hasEnded && (
+                    <div className="auction-unavailable-note">
+                      Auction can be closed after its end time.
+                    </div>
                   )}
 
                   <div className="auction-trust-note">
