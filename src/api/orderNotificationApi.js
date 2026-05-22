@@ -6,9 +6,39 @@ const ORDER_NOTIFICATION_API_BASE =
 const request = (path, options = {}, config = {}) =>
   apiFetch(`${ORDER_NOTIFICATION_API_BASE}${path}`, options, config);
 
+const sleep = (durationMs) => new Promise(resolve => {
+  const timer = globalThis.setTimeout || setTimeout;
+  timer(resolve, durationMs);
+});
+
+const isTransientReadError = (error) => (
+  !error?.status ||
+  error.status >= 500 ||
+  String(error.message || '').toLowerCase().includes('failed to fetch') ||
+  String(error.message || '').toLowerCase().includes('internal server error')
+);
+
+const readWithRetry = async (readAction, attempts = 3) => {
+  let lastError;
+
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    try {
+      return await readAction();
+    } catch (error) {
+      lastError = error;
+      if (!isTransientReadError(error) || attempt === attempts) {
+        throw error;
+      }
+      await sleep(350 * attempt);
+    }
+  }
+
+  throw lastError;
+};
+
 
 export function getOrders() {
-  return request('/orders');
+  return readWithRetry(() => request('/orders'));
 }
 
 export function getOrderById(orderId) {
@@ -46,11 +76,12 @@ export function submitDispute(orderId, reason) {
 }
 
 export function getNotifications(userId) {
-  return request(`/notifications/${encodeURIComponent(userId)}`, {}, { auth: false, retry: false });
+  return readWithRetry(() =>
+    request(`/notifications/${encodeURIComponent(userId)}`, {}, { auth: false, retry: false }));
 }
 
 export function getPreference(userId) {
-  return request(`/preferences/${encodeURIComponent(userId)}`);
+  return readWithRetry(() => request(`/preferences/${encodeURIComponent(userId)}`));
 }
 
 export function updatePreference(userId, { email, emailEnabled, pushEnabled }) {

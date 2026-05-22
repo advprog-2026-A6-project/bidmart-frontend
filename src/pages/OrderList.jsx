@@ -66,21 +66,28 @@ const OrderList = () => {
   const [trackingOrderId, setTrackingOrderId] = useState(null);
   const [trackingNumber, setTrackingNumber] = useState('');
 
-  const fetchOrders = useCallback(() => {
-    setLoading(true);
-    setError(null);
+  const fetchOrders = useCallback(({ silent = false } = {}) => {
+    if (!silent && orders.length === 0) {
+      setLoading(true);
+    }
+    if (!silent) {
+      setError(null);
+    }
 
     getOrders()
       .then(data => enrichOrdersWithAuctionRole(data, userId))
       .then(enrichedOrders => {
         setOrders(enrichedOrders);
+        setError(null);
         setLoading(false);
       })
       .catch(err => {
-        setError(err.message);
+        if (!silent || orders.length === 0) {
+          setError(err.message);
+        }
         setLoading(false);
       });
-  }, [userId]);
+  }, [orders.length, userId]);
 
   useEffect(() => {
     Promise.resolve().then(fetchOrders);
@@ -88,13 +95,13 @@ const OrderList = () => {
 
   const handleMarkPacked = (orderId) => {
     markOrderPacked(orderId)
-      .then(() => fetchOrders())
+      .then(() => fetchOrders({ silent: true }))
       .catch(err => alert(err.message));
   };
 
   const handleConfirmReceipt = (orderId) => {
     confirmReceipt(orderId)
-      .then(() => fetchOrders())
+      .then(() => fetchOrders({ silent: true }))
       .catch(err => alert(err.message));
   };
 
@@ -108,7 +115,7 @@ const OrderList = () => {
       .then(() => {
         setDisputeOrderId(null);
         setDisputeReason('');
-        fetchOrders();
+        fetchOrders({ silent: true });
       })
       .catch(err => alert(err.message));
   };
@@ -123,7 +130,7 @@ const OrderList = () => {
       .then(() => {
         setTrackingOrderId(null);
         setTrackingNumber('');
-        fetchOrders();
+        fetchOrders({ silent: true });
       })
       .catch(err => alert(err.message));
   };
