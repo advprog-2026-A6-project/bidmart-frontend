@@ -186,6 +186,21 @@
   font-weight: 700;
 }
 
+.auction-form-hint {
+  color: var(--text-light);
+  font-size: 0.95rem;
+  margin: 0 0 1rem;
+}
+
+.auction-form-hint a {
+  color: var(--secondary-red);
+  font-weight: 700;
+}
+
+.auction-linked-listing-inline {
+  margin-top: 0.75rem;
+}
+
 .auction-form-error {
   border-radius: 10px;
   background: rgba(230, 57, 70, 0.08);

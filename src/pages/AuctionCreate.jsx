@@ -1,18 +1,17 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { CheckCircle2, Gavel, Play, Plus } from 'lucide-react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { auctionApi } from '../api/auctionApi';
 import { catalogApi } from '../api/catalogApi';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import useAuth from '../context/useAuth';
 import { formatCurrency } from '../utils/auctionFormatters';
+import { getCurrentUserId } from '../utils/catalogPermissions';
 import './AuctionCreate.css';
 
 const initialForm = {
-  title: '',
-  description: '',
   listingId: '',
-  sellerId: '',
   startPrice: '',
   minIncrement: '',
   reservePrice: '',
@@ -28,18 +27,76 @@ const toNumberOrNull = (value) => {
 const AuctionCreate = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { profile, session } = useAuth();
+  const sellerId = getCurrentUserId(session, profile);
   const [form, setForm] = useState({
     ...initialForm,
     listingId: searchParams.get('listingId') || '',
   });
+  const [myListings, setMyListings] = useState([]);
   const [linkedListing, setLinkedListing] = useState(null);
+  const [loadingListings, setLoadingListings] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    const listingId = searchParams.get('listingId');
+  const listingOptions = useMemo(
+    () =>
+      myListings.filter((listing) => {
+        const status = String(listing.status || '').toUpperCase();
+        return status === 'ACTIVE' || status === '';
+      }),
+    [myListings],
+  );
 
+  useEffect(() => {
+    if (!sellerId) {
+      setMyListings([]);
+      setLoadingListings(false);
+      return undefined;
+    }
+
+    let ignore = false;
+    setLoadingListings(true);
+
+    catalogApi
+      .listMyListings(sellerId)
+      .then((listings) => {
+        if (!ignore) {
+          setMyListings(Array.isArray(listings) ? listings : []);
+        }
+      })
+      .catch((err) => {
+        if (!ignore) {
+          setError(err.message || 'Failed to load your listings');
+          setMyListings([]);
+        }
+      })
+      .finally(() => {
+        if (!ignore) {
+          setLoadingListings(false);
+        }
+      });
+
+    return () => {
+      ignore = true;
+    };
+  }, [sellerId]);
+
+  useEffect(() => {
+    const listingId = form.listingId;
     if (!listingId) {
+      setLinkedListing(null);
+      return undefined;
+    }
+
+    const fromMine = listingOptions.find((listing) => String(listing.id) === String(listingId));
+    if (fromMine) {
+      setLinkedListing(fromMine);
+      setForm((current) => ({
+        ...current,
+        startPrice: current.startPrice || String(fromMine.startingPrice || ''),
+        reservePrice: current.reservePrice || String(fromMine.reservePrice || ''),
+      }));
       return undefined;
     }
 
@@ -48,17 +105,14 @@ const AuctionCreate = () => {
     catalogApi
       .getListing(listingId)
       .then((listing) => {
-        if (ignore) return;
-
-        setLinkedListing(listing);
-        setForm((current) => ({
-          ...current,
-          title: current.title || listing.title || '',
-          description: current.description || listing.description || '',
-          sellerId: current.sellerId || String(listing.sellerId || ''),
-          startPrice: current.startPrice || String(listing.startingPrice || ''),
-          reservePrice: current.reservePrice || String(listing.reservePrice || ''),
-        }));
+        if (!ignore) {
+          setLinkedListing(listing);
+          setForm((current) => ({
+            ...current,
+            startPrice: current.startPrice || String(listing.startingPrice || ''),
+            reservePrice: current.reservePrice || String(listing.reservePrice || ''),
+          }));
+        }
       })
       .catch(() => {
         if (!ignore) {
@@ -69,7 +123,7 @@ const AuctionCreate = () => {
     return () => {
       ignore = true;
     };
-  }, [searchParams]);
+  }, [form.listingId, listingOptions]);
 
   const updateField = (field, value) => {
     setForm((current) => ({ ...current, [field]: value }));
@@ -81,19 +135,21 @@ const AuctionCreate = () => {
     setError('');
 
     try {
+      if (!form.listingId.trim()) {
+        throw new Error('Select one of your catalog listings before creating an auction.');
+      }
+
+      if (!linkedListing) {
+        throw new Error('Selected listing could not be loaded. Pick another listing or refresh.');
+      }
+
       const payload = {
-        listingId: form.listingId.trim() || null,
+        listingId: form.listingId.trim(),
         startPrice: Number(form.startPrice),
         minIncrement: Number(form.minIncrement),
         reservePrice: toNumberOrNull(form.reservePrice),
         durationMinutes: Number(form.durationMinutes),
       };
-
-      if (!linkedListing) {
-        payload.title = form.title.trim();
-        payload.description = form.description.trim() || null;
-        payload.sellerId = form.sellerId.trim() || null;
-      }
 
       const createdAuction = await auctionApi.createAuction(payload);
       const finalAuction = form.activateNow
@@ -115,8 +171,10 @@ const AuctionCreate = () => {
         <section className="container auction-create-container">
           <div className="auction-create-header">
             <span className="auction-create-eyebrow">Seller Console</span>
-            <h1>Add Auction</h1>
-            <p>Create a draft in the auction service and optionally start it immediately.</p>
+            <h1>Start Auction</h1>
+            <p>
+              Pick a catalog listing you own, then set auction pricing rules. Title and description come from the listing.
+            </p>
           </div>
 
           <form className="auction-create-form" onSubmit={handleSubmit}>
@@ -124,55 +182,47 @@ const AuctionCreate = () => {
               <div className="auction-form-section">
                 <div className="auction-form-heading">
                   <Gavel size={20} />
-                  <h2>Auction Details</h2>
+                  <h2>Catalog Listing</h2>
                 </div>
 
+                {!sellerId ? (
+                  <p className="auction-form-hint">Sign in as a seller to load your listings.</p>
+                ) : null}
+
                 <label className="auction-field">
-                  <span>Title</span>
-                  <input
+                  <span>Your listing</span>
+                  <select
                     required
-                    type="text"
-                    disabled={Boolean(linkedListing)}
-                    value={form.title}
-                    onChange={(event) => updateField('title', event.target.value)}
-                    placeholder="Vintage camera, signed jersey, rare watch"
-                  />
+                    disabled={loadingListings || !sellerId}
+                    value={form.listingId}
+                    onChange={(event) => updateField('listingId', event.target.value)}
+                  >
+                    <option value="">
+                      {loadingListings ? 'Loading listings...' : 'Select a listing'}
+                    </option>
+                    {listingOptions.map((listing) => (
+                      <option key={listing.id} value={listing.id}>
+                        {listing.title}
+                      </option>
+                    ))}
+                  </select>
                 </label>
 
-                <label className="auction-field">
-                  <span>Description</span>
-                  <textarea
-                    rows="5"
-                    disabled={Boolean(linkedListing)}
-                    value={form.description}
-                    onChange={(event) => updateField('description', event.target.value)}
-                    placeholder="Condition, provenance, included accessories, and delivery notes"
-                  />
-                </label>
+                {linkedListing ? (
+                  <div className="auction-linked-listing auction-linked-listing-inline">
+                    <span>Selected</span>
+                    <strong>{linkedListing.title}</strong>
+                    <small>{linkedListing.description}</small>
+                    <small>{formatCurrency(linkedListing.startingPrice)} catalog starting price</small>
+                  </div>
+                ) : null}
 
-                <div className="auction-field-grid">
-                  <label className="auction-field">
-                    <span>Listing ID</span>
-                    <input
-                      type="text"
-                      required={Boolean(linkedListing)}
-                      value={form.listingId}
-                      onChange={(event) => updateField('listingId', event.target.value)}
-                      placeholder="Optional"
-                    />
-                  </label>
-
-                  <label className="auction-field">
-                    <span>Seller ID</span>
-                    <input
-                      type="text"
-                      disabled={Boolean(linkedListing)}
-                      value={form.sellerId}
-                      onChange={(event) => updateField('sellerId', event.target.value)}
-                      placeholder="Optional"
-                    />
-                  </label>
-                </div>
+                {!loadingListings && sellerId && listingOptions.length === 0 ? (
+                  <p className="auction-form-hint">
+                    You have no active listings yet.{' '}
+                    <Link to="/catalog/new">Create a listing</Link> first, then return here.
+                  </p>
+                ) : null}
               </div>
 
               <div className="auction-form-section">
@@ -237,14 +287,6 @@ const AuctionCreate = () => {
               <h2>Publish</h2>
               <p>Backend creates auctions as drafts. Turn on activation to make bidding available now.</p>
 
-              {linkedListing ? (
-                <div className="auction-linked-listing">
-                  <span>Linked listing</span>
-                  <strong>{linkedListing.title}</strong>
-                  <small>{formatCurrency(linkedListing.startingPrice)} starting price</small>
-                </div>
-              ) : null}
-
               <label className="auction-toggle">
                 <input
                   type="checkbox"
@@ -259,13 +301,17 @@ const AuctionCreate = () => {
 
               {error && <div className="auction-form-error">{error}</div>}
 
-              <button className="btn-primary auction-submit-button" type="submit" disabled={submitting}>
+              <button
+                className="btn-primary auction-submit-button"
+                type="submit"
+                disabled={submitting || !form.listingId || loadingListings}
+              >
                 <Plus size={18} />
                 {submitting ? 'Saving...' : 'Create Auction'}
               </button>
 
-              <Link className="btn-outline auction-cancel-button" to="/auctions">
-                Cancel
+              <Link className="btn-outline auction-cancel-button" to="/catalog">
+                Back to catalog
               </Link>
             </aside>
           </form>

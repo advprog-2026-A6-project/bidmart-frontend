@@ -70,7 +70,7 @@ const ListingCreate = () => {
       };
 
       const createdListing = await catalogApi.createListing(payload, sellerId);
-      navigate(`/catalog/${createdListing.id}`);
+      navigate(`/sell?listingId=${createdListing.id}`);
     } catch (err) {
       setError(err.message || 'Failed to create listing');
     } finally {
@@ -225,7 +225,9 @@ const ListingCreate = () => {
 
             <aside className="listing-submit-panel">
               <h2>Publish</h2>
-              <p>New listings are saved as active in the catalog service.</p>
+              <p>
+                After you publish, you will be taken to Start Auction to link bidding to this listing.
+              </p>
 
               {error && <div className="catalog-form-error">{error}</div>}
 
